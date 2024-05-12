@@ -253,4 +253,68 @@ class StudyCommitServiceTest extends TestConfig {
 
     }
 
+    @Test
+    void 커밋_승인_성공_테스트() {
+        // given
+        Long studyId = 1L;
+        Long userId = 1L;
+        Long studyTodoId = 1L;
+        String commitSha = "123";
+
+        StudyCommit savedCommit = studyCommitRepository.save(StudyCommitFixture.createDefaultStudyCommit(userId, studyId, studyTodoId, commitSha));
+
+        // when
+        studyCommitService.approveCommit(savedCommit.getId());
+
+        // then
+        StudyCommit commit = studyCommitRepository.findById(savedCommit.getId()).get();
+        assertEquals(commit.getStatus(), CommitStatus.COMMIT_APPROVAL);
+    }
+
+    @Test
+    void 커밋_거절_성공_테스트() {
+        // given
+        Long studyId = 1L;
+        Long userId = 1L;
+        Long studyTodoId = 1L;
+        String commitSha = "123";
+
+        String rejectionReason = "동작하지 않는 코드입니다.";
+
+        StudyCommit savedCommit = studyCommitRepository.save(StudyCommitFixture.createDefaultStudyCommit(userId, studyId, studyTodoId, commitSha));
+
+        // when
+        studyCommitService.rejectCommit(savedCommit.getId(), rejectionReason);
+
+        // then
+        StudyCommit commit = studyCommitRepository.findById(savedCommit.getId()).get();
+        assertEquals(commit.getStatus(), CommitStatus.COMMIT_REJECTION);
+        assertEquals(commit.getRejectionReason(), rejectionReason);
+    }
+
+    @Test
+    void 대기중인_커밋_리스트_조회_테스트() {
+        // given
+        Long studyId = 1L;
+        Long userId = 1L;
+        Long studyTodoId = 1L;
+        Set<Integer> usedValues = new HashSet<>();
+
+        List<StudyCommit> waitingCommits = StudyCommitFixture.createWaitingStudyCommitList(15, userId, studyId, studyTodoId, usedValues);
+        List<StudyCommit> commits = StudyCommitFixture.createDefaultStudyCommitList(10, userId, studyId, studyTodoId, usedValues);
+
+        studyCommitRepository.saveAll(waitingCommits);
+        studyCommitRepository.saveAll(commits);
+
+        // when
+        List<CommitInfoResponse> waintingList = studyCommitService.selectWaitingCommit(studyId);
+
+        // then
+        assertEquals(waintingList.size(), waitingCommits.size());
+        for (var a : waintingList) {
+            assertEquals(a.getStatus(), CommitStatus.COMMIT_WAITING);
+        }
+
+    }
+
 }

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.example.backend.domain.define.study.commit.constant.CommitStatus.COMMIT_APPROVAL;
+import static com.example.backend.domain.define.study.commit.constant.CommitStatus.COMMIT_WAITING;
 
 public class StudyCommitFixture {
     private static final int MAX_VALUE = 1000; // 최대값 설정
@@ -22,6 +23,19 @@ public class StudyCommitFixture {
                 .message("메세지")
                 .commitDate(LocalDate.now())
                 .status(COMMIT_APPROVAL)
+                .rejectionReason(null)
+                .build();
+    }
+
+    public static StudyCommit createWaitingStudyCommit(Long userId, Long studyInfoId, Long studyTodoId, String commitSHA) {
+        return StudyCommit.builder()
+                .studyInfoId(studyInfoId)
+                .studyTodoId(studyTodoId)
+                .userId(userId)
+                .commitSHA(commitSHA)
+                .message("메세지")
+                .commitDate(LocalDate.now())
+                .status(COMMIT_WAITING)
                 .rejectionReason(null)
                 .build();
     }
@@ -62,5 +76,18 @@ public class StudyCommitFixture {
                 .message("message")
                 .authorName(authorName)
                 .build();
+    }
+
+    // 대기 상태의 커밋 리스트 생성 메서드
+    public static List<StudyCommit> createWaitingStudyCommitList(int count, Long userId, Long studyInfoId, Long studyTodoId, Set<Integer> usedValues) {
+        List<StudyCommit> studyCommits = new ArrayList<>();
+
+        for (int i = 1; i <= count; i++) {
+            int randomValue = generateUniqueRandomValue(usedValues);
+            usedValues.add(randomValue);
+
+            studyCommits.add(createWaitingStudyCommit(userId, studyInfoId, studyTodoId, Integer.toString(randomValue)));
+        }
+        return studyCommits;
     }
 }
