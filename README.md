@@ -174,12 +174,5 @@ Firebase: FCM
 
 <br/>
 
-<p align="left">  
-  <img src="https://github.com/DKU-Dgaja/gitudy/assets/86196342/39eb1d17-d9c8-4261-9985-d072d17b880d" align="left" width="39" height="39">  
-  <h2>흐름도</h2>
-</p>
-
-![KakaoTalk_20240414_224536283](https://github.com/rndudals/gitudy/assets/102203336/0baf96de-4b18-4e54-ad15-716736cf071e)
-
 
 ![Group 483366](https://github.com/DKU-Dgaja/gitudy/assets/86196342/ec931c8c-b16e-4c46-83a6-b1bc020367e1)
