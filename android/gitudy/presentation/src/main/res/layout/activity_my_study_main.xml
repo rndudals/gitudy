@@ -35,7 +35,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginLeft="22dp"
-            android:layout_marginTop="48dp"
+            android:layout_marginTop="20dp"
             android:src="@drawable/ic_arrow_back"
             android:tint="@color/WHITE"
             app:layout_constraintStart_toStartOf="parent"
@@ -46,7 +46,7 @@
             android:id="@+id/settingBtn"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginTop="48dp"
+            android:layout_marginTop="20dp"
             android:layout_marginRight="22dp"
             android:src="@drawable/ic_setting"
             android:tint="@color/WHITE"
@@ -100,7 +100,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:orientation="horizontal"
-                android:visibility="gone"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/studyInfo" />
@@ -315,27 +314,6 @@
                                 android:layout_marginRight="4dp"
                                 android:textColor="@color/BASIC_BLUE" />
                         </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <TextView
-                                style="@style/B7_2"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginRight="4dp"
-                                android:text="ToDoCode"
-                                android:textColor="@color/GS_500" />
-
-                            <TextView
-                                android:id="@+id/todoCode"
-                                style="@style/B7_2"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginRight="4dp"
-                                android:textColor="@color/BLACK" />
-                        </LinearLayout>
                     </LinearLayout>
 
 
@@ -343,7 +321,9 @@
                         android:id="@+id/todoDetailBody"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="25dp"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginTop="15dp"
+                        android:layout_marginEnd="5dp"
                         android:visibility="visible"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -354,7 +334,6 @@
                             style="@style/B7_2"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/study_to_do_body"
                             android:textColor="@color/GS_500" />
                     </LinearLayout>
                 </androidx.constraintlayout.widget.ConstraintLayout>
@@ -570,13 +549,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="6dp"
+                    android:layout_weight="1"
                     android:background="@drawable/box_non_stroke_r8"
                     android:backgroundTint="#F3F5F7"
                     android:gravity="center_horizontal"
                     android:paddingLeft="16dp"
                     android:paddingTop="10dp"
                     android:paddingRight="16dp"
-                    android:layout_weight="1"
                     app:layout_constraintBottom_toBottomOf="parent">
 
                     <ScrollView

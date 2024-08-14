@@ -7,18 +7,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.security.SecureRandom;
 import java.time.LocalDate;
-import java.util.Random;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "STUDY_TODO")
 public class StudyTodo extends BaseEntity {
-
-    private static final String ALLOWED_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    private final int TODO_CODE_LENGTH = 6;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "STUDY_TODO_ID")
@@ -27,8 +21,8 @@ public class StudyTodo extends BaseEntity {
     @Column(name = "STUDY_INFO_ID", nullable = false)
     private Long studyInfoId;                   // 스터디 ID
 
-    @Column(name = "TODO_CODE", nullable = false, length = TODO_CODE_LENGTH)
-    private String todoCode;                    // To do를 식별할 6자리 코드
+    @Column(name = "TODO_FOLDER_NAME", nullable = false)
+    private String todoFolderName;                  // To do에 해당하는 폴더명
 
     @Column(name = "TITLE", nullable = false)
     private String title;                       // To do 이름
@@ -46,20 +40,11 @@ public class StudyTodo extends BaseEntity {
     @Builder
     public StudyTodo(Long studyInfoId, String title, String detail, String todoLink, LocalDate todoDate) {
         this.studyInfoId = studyInfoId;
-        this.todoCode = generateRandomString();
+        this.todoFolderName = title + "_" + todoDate.toString();
         this.title = title;
         this.detail = detail;
         this.todoLink = todoLink;
         this.todoDate = todoDate;
-    }
-
-    private String generateRandomString() {
-        Random random = new SecureRandom();
-        StringBuilder sb = new StringBuilder(TODO_CODE_LENGTH);
-        for (int i = 0; i < TODO_CODE_LENGTH; i++) {
-            sb.append(ALLOWED_CHARACTERS.charAt(random.nextInt(ALLOWED_CHARACTERS.length())));
-        }
-        return sb.toString();
     }
 
     public void updateStudyTodo(String title, String detail, String todoLink, LocalDate todoDate) {
@@ -70,7 +55,7 @@ public class StudyTodo extends BaseEntity {
     }
 
     // 테스트를 위해 코드 업데이트 메서드 추가
-    public void updateTodoCode(String code) {
-        this.todoCode = code;
+    public void updateTodoFolderName(String todoFolderName) {
+        this.todoFolderName = todoFolderName;
     }
 }

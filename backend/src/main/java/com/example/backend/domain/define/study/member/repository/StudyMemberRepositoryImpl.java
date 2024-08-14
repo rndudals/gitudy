@@ -1,5 +1,6 @@
 package com.example.backend.domain.define.study.member.repository;
 
+import com.example.backend.auth.api.controller.auth.response.UserInfoResponse;
 import com.example.backend.domain.define.study.member.StudyMember;
 import com.example.backend.domain.define.study.member.constant.StudyMemberRole;
 import com.example.backend.domain.define.study.member.constant.StudyMemberStatus;
@@ -61,8 +62,18 @@ public class StudyMemberRepositoryImpl implements StudyMemberRepositoryCustom {
                         studyMember.role,
                         studyMember.status,
                         studyMember.score,
-                        user.name,
-                        user.profileImageUrl
+                        Projections.constructor(
+                                UserInfoResponse.class,
+                                user.id,
+                                user.role,
+                                user.githubId,
+                                user.name,
+                                user.profileImageUrl,
+                                user.pushAlarmYn,
+                                user.profilePublicYn,
+                                user.score,
+                                user.point
+                        )
                 ))
                 .from(studyMember)
                 .join(user).on(user.id.eq(studyMember.userId))
@@ -130,7 +141,9 @@ public class StudyMemberRepositoryImpl implements StudyMemberRepositoryCustom {
                         user.socialInfo,
                         user.profileImageUrl,
                         user.score,
-                        user.point))
+                        user.point,
+                        user.profilePublicYn,
+                        studyMember.createdDateTime))
                 .from(studyMember)
                 .join(user).on(studyMember.userId.eq(user.id))
                 .where(studyMember.studyInfoId.eq(studyInfoId)

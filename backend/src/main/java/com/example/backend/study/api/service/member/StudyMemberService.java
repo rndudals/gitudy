@@ -2,6 +2,7 @@ package com.example.backend.study.api.service.member;
 
 
 import com.example.backend.auth.api.controller.auth.response.UserInfoResponse;
+import com.example.backend.auth.api.service.rank.event.UserScoreUpdateEvent;
 import com.example.backend.common.exception.ExceptionMessage;
 import com.example.backend.common.exception.member.MemberException;
 import com.example.backend.domain.define.account.user.User;
@@ -119,6 +120,7 @@ public class StudyMemberService {
         // 알림 비동기처리
         eventPublisher.publishEvent(ResignMemberEvent.builder()
                 .isPushAlarmYn(resignUser.isPushAlarmYn())
+                .studyInfoId(studyInfo.getId())
                 .resignMemberId(resignUserId)
                 .studyInfoTopic(studyInfo.getTopic())
                 .build());
@@ -150,6 +152,7 @@ public class StudyMemberService {
         // 알림 비동기처리
         eventPublisher.publishEvent(WithdrawalMemberEvent.builder()
                 .isPushAlarmYn(studyLeader.isPushAlarmYn())
+                .studyInfoId(studyInfo.getId())
                 .studyLeaderId(studyInfo.getUserId())
                 .withdrawalMemberName(user.getName())
                 .studyInfoTopic(studyInfo.getTopic())
@@ -206,10 +209,6 @@ public class StudyMemberService {
                     .userId(user.getUserId())
                     .signGreeting(messageRequest.getMessage())
                     .build());
-
-            // 가입 승인 로직 에러로 임시로 멤버 수 증가시키는 코드 넣어두었습니다.
-            studyInfo.updateCurrentMember(1);
-
         }
 
         User leader = userService.findUserByIdOrThrowException(studyInfo.getUserId());
@@ -272,6 +271,11 @@ public class StudyMemberService {
 
             // 스터디 가입 시 User +5점
             findUser.addUserScore(5);
+            // 유저점수 이벤트 발생
+            eventPublisher.publishEvent(UserScoreUpdateEvent.builder()
+                    .userid(findUser.getId())
+                    .score(5)
+                    .build());
 
             // 스터디장 레포지토리에 가입 성공 스터디원 Collaborator 추가
             RepositoryInfo repoInfo = studyInfo.getRepositoryInfo();
@@ -294,6 +298,7 @@ public class StudyMemberService {
         eventPublisher.publishEvent(ApplyApproveRefuseMemberEvent.builder()
                 .isPushAlarmYn(applyUser.isPushAlarmYn())
                 .approve(approve)
+                .studyInfoId(studyInfo.getId())
                 .applyUserId(applyUserId)
                 .studyTopic(studyInfo.getTopic())
                 .name(applyUser.getName())
@@ -305,7 +310,7 @@ public class StudyMemberService {
     public StudyMemberApplyListAndCursorIdxResponse applyListStudyMember(Long studyInfoId, Long cursorIdx, Long limit) {
 
         // 스터디 조회 예외처리
-        studyInfoService.findStudyInfoByIdOrThrowException(studyInfoId);
+        StudyInfo studyInfo = studyInfoService.findStudyInfoByIdOrThrowException(studyInfoId);
 
         limit = Math.min(limit, MAX_LIMIT);
 
@@ -320,6 +325,7 @@ public class StudyMemberService {
 
         StudyMemberApplyListAndCursorIdxResponse response = StudyMemberApplyListAndCursorIdxResponse.builder()
                 .applyList(applyList)
+                .studyTopic(studyInfo.getTopic())
                 .build();
 
         response.setNextCursorIdx();
@@ -341,6 +347,7 @@ public class StudyMemberService {
         eventPublisher.publishEvent(NotifyMemberEvent.builder()
                 .isPushAlarmYn(notifyUser.isPushAlarmYn())
                 .notifyUserId(notifyUserId)
+                .studyInfoId(studyInfo.getId())
                 .studyTopic(studyInfo.getTopic())
                 .message(messageRequest.getMessage())
                 .build());
@@ -361,6 +368,7 @@ public class StudyMemberService {
         eventPublisher.publishEvent(NotifyLeaderEvent.builder()
                 .isPushAlarmYn(notifyUser.isPushAlarmYn())
                 .notifyUserId(studyInfo.getUserId())
+                .studyInfoId(studyInfo.getId())
                 .studyMemberName(userInfo.getName())
                 .message(messageRequest.getMessage())
                 .build());
