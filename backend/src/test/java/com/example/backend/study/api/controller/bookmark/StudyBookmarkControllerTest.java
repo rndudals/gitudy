@@ -7,6 +7,7 @@ import com.example.backend.auth.api.service.jwt.JwtService;
 import com.example.backend.common.exception.ExceptionMessage;
 import com.example.backend.common.exception.auth.AuthException;
 import com.example.backend.common.utils.TokenUtil;
+import com.example.backend.domain.define.account.bookmark.StudyBookmarkFixture;
 import com.example.backend.domain.define.account.user.User;
 import com.example.backend.study.api.service.bookmark.StudyBookmarkService;
 import com.example.backend.study.api.service.bookmark.response.BookmarkInfoResponse;
@@ -25,7 +26,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -35,11 +35,11 @@ class StudyBookmarkControllerTest extends MockTestConfig {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private StudyBookmarkService studyBookmarkService;
+    @Autowired
+    private StudyBookmarkService mockStudyBookmarkService;
 
-    @MockBean
-    private AuthService authService;
+    @Autowired
+    private AuthService mockAuthService;
 
     @Autowired
     private JwtService jwtService;
@@ -52,8 +52,8 @@ class StudyBookmarkControllerTest extends MockTestConfig {
         Map<String, String> map = TokenUtil.createTokenMap(user);
         String accessToken = jwtService.generateAccessToken(map, user);
 
-        when(authService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.builder().build());
-        when(studyBookmarkService.selectUserBookmarkList(any(Long.class), any(Long.class), any(Long.class)))
+        when(mockAuthService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.builder().build());
+        when(mockStudyBookmarkService.selectUserBookmarkList(any(Long.class), any(Long.class), any(Long.class)))
                 .thenReturn(List.of(BookmarkInfoResponse.builder().build()));
 
         // when
@@ -65,8 +65,7 @@ class StudyBookmarkControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.cursor_idx").value(0))
-                .andDo(print());
+                .andExpect(jsonPath("$.cursor_idx").value(0));
 
     }
 
@@ -78,8 +77,8 @@ class StudyBookmarkControllerTest extends MockTestConfig {
         Map<String, String> map = TokenUtil.createTokenMap(user);
         String accessToken = jwtService.generateAccessToken(map, user);
 
-        when(authService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.of(user));
-        when(studyBookmarkService.selectUserBookmarkList(any(Long.class), any(Long.class), any(Long.class)))
+        when(mockAuthService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.of(user));
+        when(mockStudyBookmarkService.selectUserBookmarkList(any(Long.class), any(Long.class), any(Long.class)))
                 .thenReturn(new ArrayList<>());
 
         // when
@@ -91,8 +90,7 @@ class StudyBookmarkControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.cursor_idx").value(0))
-                .andDo(print());
+                .andExpect(jsonPath("$.cursor_idx").value(0));
 
     }
 
@@ -104,7 +102,7 @@ class StudyBookmarkControllerTest extends MockTestConfig {
         Map<String, String> map = TokenUtil.createTokenMap(user);
         String accessToken = jwtService.generateAccessToken(map, user);
 
-        when(authService.findUserInfo(any(User.class)))
+        when(mockAuthService.findUserInfo(any(User.class)))
                 .thenThrow(new AuthException(ExceptionMessage.UNAUTHORIZED_AUTHORITY));
 
         // when
@@ -116,8 +114,7 @@ class StudyBookmarkControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(ExceptionMessage.UNAUTHORIZED_AUTHORITY.getText()))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value(ExceptionMessage.UNAUTHORIZED_AUTHORITY.getText()));
     }
 
     @Test
@@ -137,8 +134,7 @@ class StudyBookmarkControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("400 BAD_REQUEST \"Validation failure\""))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value("400 BAD_REQUEST \"Validation failure\""));
     }
 
     @Test
@@ -151,8 +147,8 @@ class StudyBookmarkControllerTest extends MockTestConfig {
         String accessToken = jwtService.generateAccessToken(map, user);
 
         // when
-        when(authService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.builder().build());
-        doNothing().when(studyBookmarkService).handleBookmark(any(Long.class), any(Long.class));
+        when(mockAuthService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.builder().build());
+        doNothing().when(mockStudyBookmarkService).handleBookmark(any(Long.class), any(Long.class));
 
         // when
         mockMvc.perform(get("/bookmarks/study/" + studyInfoId)
@@ -160,8 +156,7 @@ class StudyBookmarkControllerTest extends MockTestConfig {
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
 
                 // then
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -174,7 +169,7 @@ class StudyBookmarkControllerTest extends MockTestConfig {
         String accessToken = jwtService.generateAccessToken(map, user);
 
         // when
-        when(authService.findUserInfo(any(User.class))).thenThrow(new AuthException(ExceptionMessage.AUTH_NOT_FOUND));
+        when(mockAuthService.findUserInfo(any(User.class))).thenThrow(new AuthException(ExceptionMessage.AUTH_NOT_FOUND));
 
         // when
         mockMvc.perform(get("/bookmarks/study/" + studyInfoId)
@@ -183,7 +178,51 @@ class StudyBookmarkControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("계정 정보를 찾을 수 없습니다."))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value("계정 정보를 찾을 수 없습니다."));
+    }
+
+    @Test
+    void 북마크_인지_조회_요청_성공_테스트() throws Exception {
+        // given
+        User user = generateAuthUser();
+        Long studyInfoId = 1L;
+
+        Map<String, String> map = TokenUtil.createTokenMap(user);
+        String accessToken = jwtService.generateAccessToken(map, user);
+
+        // when
+        when(mockAuthService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.builder().build());
+        when(mockStudyBookmarkService.getIsMyBookMark(any(Long.class), any(Long.class)))
+                .thenReturn(StudyBookmarkFixture.createIsMyBookmarkResponse(user.getId(), studyInfoId));
+
+        // when
+        mockMvc.perform(get("/bookmarks/study/" + studyInfoId + "/my-bookmark")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
+
+                // then
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void 북마크_인지_조회_요청_실패_테스트() throws Exception {
+        // given
+        User user = generateAuthUser();
+        Long studyInfoId = 1L;
+
+        Map<String, String> map = TokenUtil.createTokenMap(user);
+        String accessToken = jwtService.generateAccessToken(map, user);
+
+        // when
+        when(mockAuthService.findUserInfo(any(User.class))).thenThrow(new AuthException(ExceptionMessage.AUTH_NOT_FOUND));
+
+        // when
+        mockMvc.perform(get("/bookmarks/study/" + studyInfoId + "/my-bookmark")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
+
+                // then
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("계정 정보를 찾을 수 없습니다."));
     }
 }

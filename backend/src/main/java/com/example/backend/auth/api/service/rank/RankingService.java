@@ -4,8 +4,10 @@ package com.example.backend.auth.api.service.rank;
 import com.example.backend.auth.api.service.rank.response.StudyRankingResponse;
 import com.example.backend.auth.api.service.rank.response.UserRankingResponse;
 import com.example.backend.domain.define.account.user.User;
+import com.example.backend.domain.define.account.user.constant.UserRole;
 import com.example.backend.domain.define.account.user.repository.UserRepository;
 import com.example.backend.domain.define.study.info.StudyInfo;
+import com.example.backend.domain.define.study.info.constant.StudyStatus;
 import com.example.backend.domain.define.study.info.repository.StudyInfoRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -54,21 +56,33 @@ public class RankingService {
         Double score = zSetOps.score(USER_RANKING_KEY, user.getId());
         if (score == null) {
             score = (double) user.getScore();
-            saveUserScore(user.getId(), score.intValue());
+            saveUserScore(user.getId(), score);
         }
         Long ranking = zSetOps.reverseRank(USER_RANKING_KEY, user.getId());
         if (ranking == null) {
-            return new UserRankingResponse(score.intValue(), 0L); // 랭킹이 없으면 0 반환
+            return new UserRankingResponse(score, 0L); // 랭킹이 없으면 0 반환
         }
-        return new UserRankingResponse(score.intValue(), ranking + 1);
+        return UserRankingResponse.builder()
+                .ranking(ranking + 1)
+                .score(score)
+                .build();
+    }
+
+    // 유저 점수 삭제
+    public void deleteUserScore(Long userId) {
+        ZSetOperations<String, Object> zSetOps = redisTemplate.opsForZSet();
+        zSetOps.remove(USER_RANKING_KEY, userId);
     }
 
     // 어플리케이션 로드 시점에 Cache Warming 작업
     public void updateUserRanking() {
         ZSetOperations<String, Object> zSetOps = redisTemplate.opsForZSet();
+        // USER 역할인 사용자만 필터링하여 랭킹에 추가
         List<User> users = userRepository.findAll();
         for (User user : users) {
-            zSetOps.add(USER_RANKING_KEY, user.getId(), user.getScore());
+            if (user.getRole() == UserRole.USER) {
+                zSetOps.add(USER_RANKING_KEY, user.getId(), user.getScore());
+            }
         }
     }
 
@@ -76,7 +90,14 @@ public class RankingService {
     public void updateStudyRanking() {
         ZSetOperations<String, Object> zSetOps = redisTemplate.opsForZSet();
         List<StudyInfo> studyInfos = studyInfoRepository.findAll();
-        for (StudyInfo studyInfo : studyInfos) {
+
+        // STUDY_DELETED 상태를 가진 스터디 제외
+        List<StudyInfo> filteredStudyInfos = studyInfos.stream()
+                .filter(studyInfo -> !StudyStatus.STUDY_DELETED.equals(studyInfo.getStatus()))
+                .toList();
+
+        // 필터링된 스터디 정보를 Redis에 업데이트
+        for (StudyInfo studyInfo : filteredStudyInfos) {
             zSetOps.add(STUDY_RANKING_KEY, studyInfo.getId(), studyInfo.getScore());
         }
     }
@@ -97,16 +118,25 @@ public class RankingService {
     public StudyRankingResponse getStudyRankings(StudyInfo studyInfo) {
 
         ZSetOperations<String, Object> zSetOps = redisTemplate.opsForZSet();
-        Double score = zSetOps.score(STUDY_RANKING_KEY, studyInfo.getScore());
+        Double score = zSetOps.score(STUDY_RANKING_KEY, studyInfo.getId());
         if (score == null) {
             score = (double) studyInfo.getScore();
-            saveStudyScore(studyInfo.getId(), score.intValue());
+            saveStudyScore(studyInfo.getId(), score);
         }
 
         Long ranking = zSetOps.reverseRank(STUDY_RANKING_KEY, studyInfo.getId());
         if (ranking == null) {
-            return new StudyRankingResponse(score.intValue(), 0L);
+            return new StudyRankingResponse(score, 0L);
         }
-        return new StudyRankingResponse(score.intValue(), ranking + 1);
+        return StudyRankingResponse.builder()
+                .ranking(ranking + 1)
+                .score(score)
+                .build();
+    }
+
+    // 스터디 점수 삭제
+    public void deleteStudyScore(Long studyInfoId) {
+        ZSetOperations<String, Object> zSetOps = redisTemplate.opsForZSet();
+        zSetOps.remove(STUDY_RANKING_KEY, studyInfoId);
     }
 }

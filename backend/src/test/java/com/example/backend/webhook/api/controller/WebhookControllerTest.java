@@ -19,7 +19,6 @@ import static com.example.backend.auth.config.fixture.UserFixture.generateAdminU
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class WebhookControllerTest extends MockTestConfig {
@@ -52,8 +51,7 @@ class WebhookControllerTest extends MockTestConfig {
                         .content(objectMapper.writeValueAsString(WebhookPayload.builder().build())))
 
                 // then
-                .andExpect(status().isCreated())
-                .andDo(print());
+                .andExpect(status().isCreated());
 
     }
 
@@ -77,8 +75,7 @@ class WebhookControllerTest extends MockTestConfig {
                         .content(objectMapper.writeValueAsString(payload)))
 
                 // then
-                .andExpect(status().isBadRequest())
-                .andDo(print());
+                .andExpect(status().isBadRequest());
 
     }
 }

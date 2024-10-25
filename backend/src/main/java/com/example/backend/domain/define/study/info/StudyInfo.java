@@ -43,7 +43,7 @@ public class StudyInfo extends BaseEntity {
     @Column(name = "END_DATE")
     private LocalDate endDate;                      // 스터디 종료일
 
-    @Column(name = "INFO", length = 512)
+    @Column(name = "INFO", columnDefinition = "TEXT")
     private String info;                            // 스터디 소개
 
     @Enumerated(EnumType.STRING)
@@ -120,6 +120,10 @@ public class StudyInfo extends BaseEntity {
         this.status = StudyStatus.STUDY_DELETED;
     }
 
+    public void updateInactiveStudy() {
+        this.status = StudyStatus.STUDY_INACTIVE;
+    }
+
     // 스터디원 증/감
     public void updateCurrentMember(int num) {
         this.currentMember += num;
@@ -132,5 +136,10 @@ public class StudyInfo extends BaseEntity {
     // Score 업데이트 메서드
     public void addStudyScore(int score) {
         this.score = Math.max(0, this.score + score);
+    }
+
+    // 마지막 커밋 시간 업데이트
+    public void updateLastCommitDateToCurrent() {
+        this.lastCommitDay = LocalDate.now();
     }
 }

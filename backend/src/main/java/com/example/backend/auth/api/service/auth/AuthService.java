@@ -1,5 +1,6 @@
 package com.example.backend.auth.api.service.auth;
 
+import com.example.backend.auth.api.controller.auth.request.AdminLoginRequest;
 import com.example.backend.auth.api.controller.auth.request.UserNameRequest;
 import com.example.backend.auth.api.controller.auth.response.AuthLoginResponse;
 import com.example.backend.auth.api.controller.auth.response.ReissueAccessTokenResponse;
@@ -29,9 +30,11 @@ import com.example.backend.domain.define.fcm.repository.FcmTokenRepository;
 import com.example.backend.domain.define.refreshToken.RefreshToken;
 import com.example.backend.domain.define.refreshToken.repository.RefreshTokenRepository;
 import com.example.backend.study.api.service.github.GithubApiTokenService;
+import com.example.backend.study.api.service.info.StudyManagementService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +47,13 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class AuthService {
+    @Value("${tester.token}")
+    private String testerToken;
+    @Value("${tester.id}")
+    private String testerId;
+    @Value("${tester.password}")
+    private String testerPassword;
+
     private static final String PLATFORM_ID_CLAIM = "platformId";
     private static final String PLATFORM_TYPE_CLAIM = "platformType";
     private static final String ROLE_CLAIM = "role";
@@ -56,6 +66,7 @@ public class AuthService {
     private final FcmTokenRepository fcmTokenRepository;
     private final GithubApiTokenService githubApiTokenService;
     private final ApplicationEventPublisher eventPublisher;
+    private final StudyManagementService studyManagementService;
 
     @Transactional
     public AuthLoginResponse login(UserPlatformType platformType, String code, String state) {
@@ -72,17 +83,21 @@ public class AuthService {
          */
         User findUser = userRepository.findByPlatformIdAndPlatformType(platformId, platformType)
                 .orElseGet(() -> {
-                    User saveUser = User.builder()
+                    User.UserBuilder userBuilder = User.builder()
                             .platformId(platformId)
                             .platformType(loginResponse.getPlatformType())
                             .role(UserRole.UNAUTH)
                             .name(name)
                             .score(10)
-                            .profileImageUrl(profileImageUrl)
-                            .build();
+                            .profileImageUrl(profileImageUrl);
+
+                    if (platformType == UserPlatformType.GITHUB) {
+                        userBuilder.githubId(name);
+                    }
+
+                    User saveUser = userBuilder.build();
 
                     log.info(">>>> [ UNAUTH 권한으로 사용자를 DB에 등록합니다. 이후 회원가입이 필요합니다 ] <<<<");
-
                     return userRepository.save(saveUser);
                 });
 
@@ -182,11 +197,11 @@ public class AuthService {
         }
 
         // 회원가입 정보 DB 반영
-        findUser.updateRegister(request.getName(), request.getGithubId(), request.isPushAlarmYn());
+        findUser.updateRegister(request.getName(), request.isPushAlarmYn());
 
         // fcmToken 저장
         FcmToken fcmToken = FcmToken.builder()
-                .userId(user.getId())
+                .userId(findUser.getId())
                 .fcmToken(request.getFcmToken())
                 .build();
         fcmTokenRepository.save(fcmToken);
@@ -208,27 +223,28 @@ public class AuthService {
     }
 
     @Transactional
-    public void userDelete(String userName) {
-        String[] platformIdAndPlatformType = extractFromSubject(userName);
-        String platformId = platformIdAndPlatformType[0];
-        String platformType = platformIdAndPlatformType[1];
-        User user = userRepository.findByPlatformIdAndPlatformType(platformId, UserPlatformType.valueOf(platformType)).orElseThrow(() -> {
-            log.warn(">>>> User Delete Fail : {}", ExceptionMessage.AUTH_NOT_FOUND.getText());
-            return new AuthException(ExceptionMessage.AUTH_NOT_FOUND);
-        });
+    public void userDelete(User contextUser, String reason) {
+        User findUser = userRepository.findByPlatformIdAndPlatformType(contextUser.getPlatformId(), contextUser.getPlatformType())
+                .orElseThrow(() -> {
+                    log.error(">>>> User not found for platformId {} and platformType {} <<<<", contextUser.getPlatformId(), contextUser.getPlatformType());
+                    throw new UserException(ExceptionMessage.USER_NOT_FOUND);
+                });
 
-        try {
-            user.deleteUser();
-            log.info(">>>> {} Info is Deleted.", user.getName());
-        } catch (IllegalArgumentException e) {
-            log.error(">>>> ID = {} : 계정 삭제에 실패했습니다.", user.getId());
-            throw new AuthException(ExceptionMessage.AUTH_DELETE_FAIL);
-        }
-    }
+        // 랭킹 스코어 삭제
+        rankingService.deleteUserScore(findUser.getId());
+  
+        // 사용자가 운영하던 스터디 종료
+        studyManagementService.closeStudiesOwnedByUser(findUser.getId());
 
-    private String[] extractFromSubject(String subject) {
-        // "_"로 문자열을 나누고 id와 type을 추출
-        return subject.split("_");
+        // 사용자가 참여하던 스터디에서 활동 종료
+        studyManagementService.inactiveUserFromAllStudies(findUser.getId());
+
+        // 깃허브 토큰 삭제
+        githubApiTokenService.deleteToken(findUser.getId());
+
+        // 사용자 탈퇴 및 개인 정보 삭제
+        findUser.withdrawal(reason);
+        log.info(">>>> 회원 탈퇴가 완료되었습니다. user id: {}", findUser.getId());
     }
 
     public UserInfoResponse authenticate(Long userId, User user) {
@@ -308,5 +324,24 @@ public class AuthService {
             log.error(">>>> User not found for githubId {} <<<<", githubId);
             return new UserException(ExceptionMessage.USER_NOT_FOUND_WITH_GITHUB_ID);
         }).getId();
+    }
+
+    // 닉네임 중복체크 메서드
+    public AuthLoginResponse loginAdmin(AdminLoginRequest request) {
+
+        if (!request.getId().equals(testerId)) {
+            log.warn(">>>> {} : {} <<<<", request.getId(), ExceptionMessage.USER_NOT_ADMIN_ID);
+            throw new UserException(ExceptionMessage.USER_NOT_ADMIN_ID);
+        }
+        if(!request.getPassword().equals(testerPassword)){
+            log.warn(">>>> {} : {} <<<<", request.getPassword(), ExceptionMessage.USER_NOT_ADMIN_PASSWORD);
+            throw new UserException(ExceptionMessage.USER_NOT_ADMIN_PASSWORD);
+        }
+
+        log.warn(">>>> [ {}님이 로그인하셨습니다 ] <<<<", request.getId());
+
+        return AuthLoginResponse.builder()
+                .accessToken(testerToken)
+                .build();
     }
 }

@@ -7,7 +7,7 @@
     android:background="@color/BACKGROUND"
     tools:context=".ui.profile.ProfileHomeFragment">
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -19,7 +19,7 @@
             android:layout_marginLeft="22dp"
             android:layout_marginRight="22dp"
             android:clipToPadding="false"
-            android:paddingBottom="70dp"
+            android:paddingBottom="120dp"
             app:layout_constraintTop_toTopOf="parent">
 
             <LinearLayout
@@ -35,14 +35,8 @@
                     android:id="@+id/settingBtn"
                     android:layout_width="36dp"
                     android:layout_height="36dp"
-                    android:layout_marginRight="12dp"
                     android:src="@drawable/ic_setting" />
 
-                <ImageView
-                    android:id="@+id/alarmBtn"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_alarm" />
             </LinearLayout>
 
             <LinearLayout
@@ -60,7 +54,7 @@
                     android:layout_marginRight="16dp"
                     android:background="@drawable/circle_non_stroke"
                     android:clipToOutline="true"
-                    android:src="@drawable/character_bebe_over_130" />
+                    android:src="@drawable/logo_profile_default" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -104,6 +98,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
                 app:cardCornerRadius="8dp"
+                app:cardElevation="0.5dp"
                 app:layout_constraintTop_toBottomOf="@+id/profileTitleLayout">
 
                 <LinearLayout
@@ -153,7 +148,6 @@
                             style="@style/B7_2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/profile_github_link"
                             android:textColor="@color/GS_500"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -200,7 +194,6 @@
                             style="@style/B7_2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/profile_blog_link"
                             android:textColor="@color/GS_500"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -249,7 +242,6 @@
                             style="@style/B7_2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/profile_linkedin_link"
                             android:textColor="@color/GS_500"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -275,13 +267,15 @@
                 android:layout_marginTop="30dp"
                 android:background="@color/WHITE"
                 app:cardCornerRadius="10dp"
+                app:cardElevation="0.5dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/divider1">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
+                    android:minHeight="120dp"
                     android:paddingLeft="12dp"
                     android:paddingTop="22dp"
                     android:paddingRight="12dp"
@@ -329,7 +323,7 @@
                         android:layout_marginTop="12dp"
                         android:text="@string/profile_no_commit_list"
                         android:textColor="@color/GS_400"
-                        android:visibility="visible"
+                        android:visibility="gone"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/commitListTitle" />
@@ -338,8 +332,9 @@
                         android:id="@+id/commitList"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="22dp"
+                        android:layout_marginTop="8dp"
                         android:background="@color/WHITE"
+                        android:nestedScrollingEnabled="false"
                         app:layout_constraintTop_toBottomOf="@+id/commitListTitle" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
@@ -352,6 +347,7 @@
                 android:layout_marginTop="30dp"
                 android:background="@color/WHITE"
                 app:cardCornerRadius="10dp"
+                app:cardElevation="0.5dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/commitListLayout">
@@ -359,6 +355,7 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="120dp"
                     android:paddingLeft="12dp"
                     android:paddingTop="22dp"
                     android:paddingRight="12dp"
@@ -389,7 +386,7 @@
 
 
                     <TextView
-                        android:id="@+id/myStudyMoreBtn"
+                        android:id="@+id/bookmarkMoreBtn"
                         style="@style/B7_2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -400,23 +397,26 @@
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <TextView
-                        android:id="@+id/isNoSavedStudy"
+                        android:id="@+id/isNoBookmarkLayout"
                         style="@style/B6_2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="@string/profile_no_saved_study"
                         android:textColor="@color/GS_400"
-                        android:visibility="visible"
+                        android:visibility="gone"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/myStudyTitle" />
 
                     <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/bookmarkList"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="22dp"
+                        android:layout_marginTop="8dp"
                         android:background="@color/WHITE"
+                        android:nestedScrollingEnabled="false"
                         app:layout_constraintTop_toBottomOf="@+id/myStudyTitle" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
@@ -424,5 +424,5 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

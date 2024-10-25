@@ -35,7 +35,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -47,8 +46,8 @@ public class StudyMemberControllerTest extends MockTestConfig {
     @Autowired
     private JwtService jwtService;
 
-    @MockBean
-    private AuthService authService;
+    @Autowired
+    private AuthService mockAuthService;
 
     @Autowired
     private UserRepository userRepository;
@@ -59,8 +58,8 @@ public class StudyMemberControllerTest extends MockTestConfig {
     @Autowired
     private StudyMemberRepository studyMemberRepository;
 
-    @MockBean
-    private StudyMemberService studyMemberService;
+    @Autowired
+    private StudyMemberService mockStudyMemberService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -84,8 +83,8 @@ public class StudyMemberControllerTest extends MockTestConfig {
         StudyInfo studyInfo = StudyInfoFixture.createDefaultPublicStudyInfo(savedUser.getId());
         studyInfoRepository.save(studyInfo);
 
-        when(authService.authenticate(any(Long.class), any(User.class))).thenReturn(UserInfoResponse.builder().build());
-        when(studyMemberService.readStudyMembers(any(Long.class), any(boolean.class))).thenReturn(List.of(StudyMembersResponse.builder().build()));
+        when(mockAuthService.authenticate(any(Long.class), any(User.class))).thenReturn(UserInfoResponse.builder().build());
+        when(mockStudyMemberService.readStudyMembers(any(Long.class), any(boolean.class))).thenReturn(List.of(StudyMembersResponse.builder().build()));
 
 
         //when , then
@@ -114,8 +113,8 @@ public class StudyMemberControllerTest extends MockTestConfig {
         StudyMember studyMember = StudyMemberFixture.createDefaultStudyMember(member.getId(), studyInfo.getId());
         studyMemberRepository.save(studyMember);
 
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(leader));
-        doNothing().when(studyMemberService).resignStudyMember(any(Long.class), any(Long.class));
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(leader));
+        doNothing().when(mockStudyMemberService).resignStudyMember(any(Long.class), any(Long.class));
 
         //when , then
         mockMvc.perform(patch("/member/" + studyInfo.getId() + "/resign/" + studyMember.getUserId())
@@ -144,8 +143,8 @@ public class StudyMemberControllerTest extends MockTestConfig {
         StudyMember studyMember = StudyMemberFixture.createDefaultStudyMember(member.getId(), studyInfo.getId());
         studyMemberRepository.save(studyMember);
 
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(member));
-        doNothing().when(studyMemberService).resignStudyMember(any(Long.class), any(Long.class));
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(member));
+        doNothing().when(mockStudyMemberService).resignStudyMember(any(Long.class), any(Long.class));
 
         //when , then
         mockMvc.perform(patch("/member/" + studyInfo.getId() + "/withdrawal")
@@ -167,8 +166,8 @@ public class StudyMemberControllerTest extends MockTestConfig {
         StudyInfo studyInfo = StudyInfoFixture.createDefaultPublicStudyInfo(savedUser.getId());
         studyInfoRepository.save(studyInfo);
 
-        when(authService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyMemberService).applyStudyMember(any(UserInfoResponse.class), any(Long.class), any(String.class), any(MessageRequest.class));
+        when(mockAuthService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.of(savedUser));
+        doNothing().when(mockStudyMemberService).applyStudyMember(any(UserInfoResponse.class), any(Long.class), any(String.class), any(MessageRequest.class));
 
         MessageRequest messageRequest = StudyMemberFixture.generateMessageRequest();
 
@@ -194,8 +193,8 @@ public class StudyMemberControllerTest extends MockTestConfig {
         StudyInfo studyInfo = StudyInfoFixture.createDefaultPublicStudyInfo(savedUser.getId());
         studyInfoRepository.save(studyInfo);
 
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyMemberService).leaderApproveRefuseMember(any(Long.class), any(Long.class), any(boolean.class));
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
+        doNothing().when(mockStudyMemberService).leaderApproveRefuseMember(any(Long.class), any(Long.class), any(boolean.class));
 
         // when, then
         mockMvc.perform(patch("/member/" + studyInfo.getId() + "/apply/" + 1L)
@@ -218,8 +217,8 @@ public class StudyMemberControllerTest extends MockTestConfig {
         StudyInfo studyInfo = StudyInfoFixture.createDefaultPublicStudyInfo(savedUser.getId());
         studyInfoRepository.save(studyInfo);
 
-        when(authService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyMemberService).applyCancelStudyMember(any(UserInfoResponse.class), any(Long.class));
+        when(mockAuthService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.of(savedUser));
+        doNothing().when(mockStudyMemberService).applyCancelStudyMember(any(UserInfoResponse.class), any(Long.class));
 
         //when , then
         mockMvc.perform(delete("/member/" + studyInfo.getId() + "/apply")
@@ -247,8 +246,8 @@ public class StudyMemberControllerTest extends MockTestConfig {
                 .applyList(new ArrayList<>()) // 비어 있는 가입 리스트
                 .build();
 
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
-        when(studyMemberService.applyListStudyMember(any(Long.class), any(Long.class), any(Long.class))).thenReturn(response);
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
+        when(mockStudyMemberService.applyListStudyMember(any(Long.class), any(Long.class), any(Long.class))).thenReturn(response);
 
         //when , then
         mockMvc.perform(get("/member/" + studyInfo.getId() + "/apply")
@@ -259,8 +258,8 @@ public class StudyMemberControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$").isNotEmpty());
+
     }
 
     @Test
@@ -278,8 +277,8 @@ public class StudyMemberControllerTest extends MockTestConfig {
                 .applyList(new ArrayList<>()) // 비어 있는 가입 리스트
                 .build();
 
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
-        when(studyMemberService.applyListStudyMember(any(Long.class), any(), any(Long.class))).thenReturn(response);
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
+        when(mockStudyMemberService.applyListStudyMember(any(Long.class), any(), any(Long.class))).thenReturn(response);
 
         //when , then
         mockMvc.perform(get("/member/" + studyInfo.getId() + "/apply")
@@ -290,8 +289,8 @@ public class StudyMemberControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$").isNotEmpty());
+
     }
 
     @Test
@@ -305,7 +304,7 @@ public class StudyMemberControllerTest extends MockTestConfig {
         StudyInfo studyInfo = StudyInfoFixture.createDefaultPublicStudyInfo(savedUser.getId());
         studyInfoRepository.save(studyInfo);
 
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
 
         MessageRequest messageRequest = StudyMemberFixture.generateMessageRequest();
 
@@ -332,7 +331,7 @@ public class StudyMemberControllerTest extends MockTestConfig {
         StudyInfo studyInfo = StudyInfoFixture.createDefaultPublicStudyInfo(savedUser.getId());
         studyInfoRepository.save(studyInfo);
 
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
 
         MessageRequest messageRequest = StudyMemberFixture.generateMessageRequest();
 

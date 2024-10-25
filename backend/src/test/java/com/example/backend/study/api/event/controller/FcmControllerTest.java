@@ -24,7 +24,6 @@ import static com.example.backend.auth.config.fixture.UserFixture.generateAuthUs
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SuppressWarnings("NonAsciiCharacters")
@@ -38,8 +37,8 @@ class FcmControllerTest extends MockTestConfig {
     @Autowired
     private JwtService jwtService;
 
-    @MockBean
-    private FcmService fcmService;
+    @Autowired
+    private FcmService mockFcmService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -62,15 +61,15 @@ class FcmControllerTest extends MockTestConfig {
         String accessToken = jwtService.generateAccessToken(map, savedUser);
 
         // when
-        doNothing().when(fcmService).saveFcmTokenRequest(any(User.class), any(FcmTokenSaveRequest.class));
+        doNothing().when(mockFcmService).saveFcmTokenRequest(any(User.class), any(FcmTokenSaveRequest.class));
 
         // then
         mockMvc.perform(post("/fcm")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken))
                         .content(objectMapper.writeValueAsString(token)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
     }
 
     @Test
@@ -81,7 +80,7 @@ class FcmControllerTest extends MockTestConfig {
         String accessToken = jwtService.generateAccessToken(map, savedUser);
 
 
-        doNothing().when(fcmService).sendMessageSingleDevice(any(FcmSingleTokenRequest.class));
+        doNothing().when(mockFcmService).sendMessageSingleDevice(any(FcmSingleTokenRequest.class));
 
         FcmSingleTokenRequest fcmSingleTokenRequest = FcmFixture.generateFcmSingleTokenRequest();
 
@@ -90,8 +89,8 @@ class FcmControllerTest extends MockTestConfig {
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken))
                         .content(objectMapper.writeValueAsString(fcmSingleTokenRequest)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
     }
 
     @Test
@@ -102,7 +101,7 @@ class FcmControllerTest extends MockTestConfig {
         String accessToken = jwtService.generateAccessToken(map, savedUser);
 
 
-        doNothing().when(fcmService).sendMessageMultiDevice(any(FcmMultiTokenRequest.class));
+        doNothing().when(mockFcmService).sendMessageMultiDevice(any(FcmMultiTokenRequest.class));
 
         FcmMultiTokenRequest fcmMultiTokenRequest = FcmFixture.generateFcmMultiTokenRequest();
 
@@ -111,8 +110,8 @@ class FcmControllerTest extends MockTestConfig {
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken))
                         .content(objectMapper.writeValueAsString(fcmMultiTokenRequest)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
     }
 
 }

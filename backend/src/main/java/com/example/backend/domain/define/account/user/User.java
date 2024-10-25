@@ -71,8 +71,11 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "POINT")
     private int point = 0;                                      // 사용자 포인트
 
+    @Column(name = "WITHDRAWAL_REASON")
+    private String withdrawalReason;                            // 탈퇴 이유
+
     @Builder
-    public User(String platformId, UserPlatformType platformType, UserRole role, SocialInfo socialInfo, String githubId, String name, String profileImageUrl, boolean pushAlarmYn, boolean profilePublicYn, int score, int point) {
+    public User(String platformId, UserPlatformType platformType, UserRole role, SocialInfo socialInfo, String githubId, String name, String profileImageUrl, boolean pushAlarmYn, boolean profilePublicYn, int score, int point, String withdrawalReason) {
         this.platformId = platformId;
         this.platformType = platformType;
         this.role = role;
@@ -84,13 +87,13 @@ public class User extends BaseEntity implements UserDetails {
         this.profilePublicYn = profilePublicYn;
         this.score = score;
         this.point = point;
+        this.withdrawalReason = withdrawalReason;
     }
 
     // 회원가입 (UNAUTH -> USER)
-    public void updateRegister(String name, String githubId, boolean pushAlarmYn) {
+    public void updateRegister(String name, boolean pushAlarmYn) {
         this.role = UserRole.USER;
         this.name = name;
-        this.githubId = githubId;
         this.pushAlarmYn = pushAlarmYn;
     }
 
@@ -107,8 +110,16 @@ public class User extends BaseEntity implements UserDetails {
         this.pushAlarmYn = pushAlarmEnable;
     }
 
-    public void deleteUser() {
+    public void withdrawal(String reason) {
         this.role = UserRole.WITHDRAW;
+        this.name = "탈퇴한 사용자";
+        this.platformId = "DELETED" + this.getId();
+        this.socialInfo = null;
+        this.githubId = null;
+        this.profileImageUrl = null;
+        this.score = 0;
+        this.point = 0;
+        this.withdrawalReason = reason;
     }
 
     // Score 업데이트 메서드

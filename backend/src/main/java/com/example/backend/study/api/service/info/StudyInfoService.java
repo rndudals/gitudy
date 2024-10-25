@@ -1,6 +1,7 @@
 package com.example.backend.study.api.service.info;
 
 import com.example.backend.auth.api.controller.auth.response.UserInfoResponse;
+import com.example.backend.auth.api.service.rank.RankingService;
 import com.example.backend.auth.api.service.rank.event.StudyScoreSaveEvent;
 import com.example.backend.auth.api.service.rank.event.UserScoreUpdateEvent;
 import com.example.backend.common.exception.ExceptionMessage;
@@ -59,6 +60,7 @@ public class StudyInfoService {
     private final GithubApiService githubApiService;
     private final GithubApiTokenService githubApiTokenService;
     private final ApplicationEventPublisher eventPublisher;
+    private final RankingService rankingService;
 
     @Transactional
     public StudyInfoRegisterResponse registerStudy(StudyInfoRegisterRequest request, UserInfoResponse userInfo) {
@@ -80,6 +82,8 @@ public class StudyInfoService {
                 .userid(userInfo.getUserId())
                 .score(5)
                 .build());
+
+        studyInfo.addStudyScore(1);
         // 스터디 초기 점수추가 이벤트
         eventPublisher.publishEvent(StudyScoreSaveEvent.builder()
                 .studyInfoId(studyInfo.getId())
@@ -91,6 +95,7 @@ public class StudyInfoService {
 
         // github에 스터디 레포지토리 생성
         GithubApiToken token = githubApiTokenService.getToken(userInfo.getUserId());
+
         githubApiService.createRepository(token.githubApiToken(), studyInfo.getRepositoryInfo(), "README.md를 작성해주세요.");
 
         return StudyInfoRegisterResponse.of(studyInfo, categories);
@@ -122,6 +127,9 @@ public class StudyInfoService {
 
         // 스터디 멤버 상태정보 변경
         updateWithdrawalStudyMember(studyInfoId);
+
+        // 랭킹 스코어 삭제
+        rankingService.deleteStudyScore(studyInfo.getId());
 
         return true;
     }
@@ -313,6 +321,7 @@ public class StudyInfoService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public void checkDuplicateRepoName(UserInfoResponse userInfo, String repoName) {
 
         // 사용자의 깃허브 토큰 조회
@@ -323,5 +332,15 @@ public class StudyInfoService {
             log.error(">>>> [ {} : {} ] <<<<", ExceptionMessage.GITHUB_API_REPOSITORY_ALREADY_EXISTS.getText(), repoName);
             throw new GithubApiException(ExceptionMessage.GITHUB_API_REPOSITORY_ALREADY_EXISTS);
         }
+    }
+    @Transactional
+    public boolean closeStudy(Long studyInfoId) {
+        // 스터디 조회 예외처리
+        StudyInfo studyInfo = findStudyInfoByIdOrThrowException(studyInfoId);
+
+        // 스터디 상태정보 변경
+        studyInfo.updateInactiveStudy();
+
+        return true;
     }
 }

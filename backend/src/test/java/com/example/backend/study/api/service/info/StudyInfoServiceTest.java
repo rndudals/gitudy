@@ -1,6 +1,7 @@
 package com.example.backend.study.api.service.info;
 
 import com.example.backend.MockTestConfig;
+import com.example.backend.TestConfig;
 import com.example.backend.auth.api.controller.auth.response.UserInfoResponse;
 import com.example.backend.auth.config.fixture.UserFixture;
 import com.example.backend.common.exception.ExceptionMessage;
@@ -49,7 +50,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("NonAsciiCharacters")
-class StudyInfoServiceTest extends MockTestConfig {
+class StudyInfoServiceTest extends TestConfig {
     private final static Long LIMIT = 10L;
     private final static String SORTBY = "score";
     @Autowired
@@ -890,5 +891,36 @@ class StudyInfoServiceTest extends MockTestConfig {
                 .thenReturn(false);
 
         studyInfoService.checkDuplicateRepoName(UserInfoResponse.of(user), newName);
+    }
+
+    @Test
+    void 스터디_종료_성공_테스트() {
+        // given
+
+        // 유저생성
+        User leaderUser = userRepository.save(UserFixture.generateAuthUserByPlatformId("a"));
+        User user1 = userRepository.save(UserFixture.generateAuthUserByPlatformId("b"));
+        User user2 = userRepository.save(UserFixture.generateAuthUserByPlatformId("c"));
+        User user3 = userRepository.save(UserFixture.generateAuthUserByPlatformId("d"));
+
+        // 스터디 생성
+        StudyInfo studyInfo = studyInfoRepository.save(generateStudyInfo(leaderUser.getId()));
+
+        // 스터디 멤버 생성
+        List<StudyMember> studyMembers = new ArrayList<>();
+        studyMembers.add(StudyMemberFixture.createStudyMemberLeader(leaderUser.getId(), studyInfo.getId()));
+        studyMembers.add(StudyMemberFixture.createDefaultStudyMember(user1.getId(), studyInfo.getId()));
+        studyMembers.add(StudyMemberFixture.createDefaultStudyMember(user2.getId(), studyInfo.getId()));
+        studyMembers.add(StudyMemberFixture.createDefaultStudyMember(user3.getId(), studyInfo.getId()));
+        studyMemberRepository.saveAll(studyMembers);
+
+        // when
+        studyInfoService.closeStudy(studyInfo.getId());
+
+
+        // then
+        // 스터디의 상태는 STUDY_INACTIVE이다.
+        assertEquals(studyInfoRepository.findById(studyInfo.getId()).get().getStatus(), StudyStatus.STUDY_INACTIVE);
+
     }
 }

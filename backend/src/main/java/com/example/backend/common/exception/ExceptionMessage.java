@@ -42,6 +42,8 @@ public enum ExceptionMessage {
     USER_NOT_FOUND("데이터베이스에서 사용자를 찾을 수 없습니다."),
     USER_NAME_DUPLICATION("중복된 이름입니다."),
     USER_NOT_FOUND_WITH_GITHUB_ID("깃허브 계정에 해당하는 사용자를 찾을 수 없습니다."),
+    USER_NOT_ADMIN_ID("관리자의 아이디가 아닙니다."),
+    USER_NOT_ADMIN_PASSWORD("관리자의 패스워드가 아닙니다.."),
 
     // CommitException
     COMMIT_NOT_FOUND("커밋 정보를 찾을 수 없습니다."),
@@ -63,11 +65,11 @@ public enum ExceptionMessage {
     // StudyMemberException
     USER_NOT_STUDY_MEMBER("해당 스터디원을 찾을 수 없습니다."),
     STUDY_ALREADY_MEMBER("이미 해당 스터디의 멤버 입니다."),
+    STUDY_REAPPLY_MEMBER("스터디 재가입이 불가능한 멤버입니다."),
     STUDY_RESIGNED_MEMBER("이미 강퇴당한 스터디 입니다."),
     STUDY_WAITING_MEMBER("이미 가입신청 완료하여 승인 대기중인 스터디 입니다."),
     STUDY_WAITING_NOT_MEMBER("해당 스터디에 가입 대기중인 유저가 아닙니다."),
     STUDY_JOIN_CODE_FAIL("스터디 참여 코드가 맞지 않습니다."),
-    STUDY_NOT_APPLY_LIST("해당 스터디에 가입신청이 없습니다"),
     STUDY_NOT_ACTIVE_MEMBER("해당 스터디의 활동중인 스터디원이 아닙니다."),
 
     // StudyCommentException

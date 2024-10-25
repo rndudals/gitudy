@@ -39,6 +39,25 @@
             app:layout_constraintStart_toEndOf="@+id/feedTitle"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <ImageView
+            android:id="@+id/alarmBtn"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_alarm"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/alarmActiveDot"
+            android:visibility="invisible"
+            android:layout_width="7dp"
+            android:layout_height="7dp"
+            android:layout_marginTop="7dp"
+            android:layout_marginEnd="5dp"
+            android:src="@drawable/ic_alert_active"
+            app:layout_constraintEnd_toEndOf="@id/alarmBtn"
+            app:layout_constraintTop_toTopOf="@id/alarmBtn" />
+
         <CheckBox
             android:id="@+id/enableStudyCheckBtn"
             android:layout_width="22dp"
@@ -46,6 +65,7 @@
             android:layout_marginTop="18dp"
             android:background="@drawable/selector_ic_check_sq_checked"
             android:button="@null"
+            android:checked="true"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/feedTitle" />
 
@@ -55,14 +75,14 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="4dp"
             android:layout_marginTop="19dp"
-            android:text="참여 가능한 스터디만 보기"
+            android:text="활동 중인 스터디만 보기"
             android:textColor="@color/GS_800"
             app:layout_constraintStart_toEndOf="@+id/enableStudyCheckBtn"
             app:layout_constraintTop_toBottomOf="@id/feedTitle" />
 
         <LinearLayout
             android:id="@+id/sortBtn"
-            android:layout_width="64dp"
+            android:layout_width="68dp"
             android:layout_height="28dp"
             android:layout_marginTop="16dp"
             android:background="@drawable/box_stroke_300_r12"
@@ -77,10 +97,11 @@
                 android:src="@drawable/ic_sort" />
 
             <TextView
+                android:id="@+id/sortBtnText"
                 style="@style/B7_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="정렬"
+                android:text="랭킹순"
                 android:textColor="@color/GS_800" />
         </LinearLayout>
 
@@ -114,13 +135,41 @@
             android:textColor="@color/GS_400" />
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/feedList"
+    <ImageView
+        android:id="@+id/loadingImg"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/ic_wait"
+        app:layout_constraintBottom_toBottomOf="@+id/feedSwipeRefreshLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/feedSwipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="100dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/feedTitleLayout"/>
+        app:layout_constraintTop_toBottomOf="@+id/feedTitleLayout">
 
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/feedList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <ImageView
+        android:id="@+id/makeNewStudyBtn"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="128dp"
+        android:background="@drawable/circle_non_stroke"
+        android:elevation="5dp"
+        android:padding="9dp"
+        android:src="@drawable/ic_make_study"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

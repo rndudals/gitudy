@@ -7,12 +7,13 @@ import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.takseha.data.dto.mystudy.StudyComment
+import com.takseha.data.dto.mystudy.Comment
 import com.takseha.presentation.R
 import com.takseha.presentation.databinding.ItemCommentBinding
+import com.takseha.presentation.ui.common.UTCToKoreanTimeConverter
 import java.time.LocalDateTime
 
-class CommentListRVAdapter(val context: Context, val commentList: List<StudyComment>) :
+class CommentListRVAdapter(val context: Context, val commentList: List<Comment>) :
     RecyclerView.Adapter<CommentListRVAdapter.ViewHolder>() {
 
     class ViewHolder(val binding: ItemCommentBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -35,8 +36,8 @@ class CommentListRVAdapter(val context: Context, val commentList: List<StudyComm
             .into(holder.profileImg)
 
         holder.content.text = commentList[position].content
-        holder.date.text =
-            LocalDateTime.parse(commentList[position].commentSetDate).toLocalDate().toString()
+        val localDateTime = LocalDateTime.parse(commentList[position].commentSetDate)
+        holder.date.text = UTCToKoreanTimeConverter().convertToKoreaDate(localDateTime)
     }
 
     override fun getItemCount(): Int {

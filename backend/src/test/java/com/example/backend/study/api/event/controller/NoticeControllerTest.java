@@ -27,7 +27,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,11 +42,11 @@ class NoticeControllerTest extends MockTestConfig {
     @Autowired
     private JwtService jwtService;
 
-    @MockBean
-    private AuthService authService;
+    @Autowired
+    private AuthService mockAuthService;
 
-    @MockBean
-    private NoticeService noticeService;
+    @Autowired
+    private NoticeService mockNoticeService;
 
 
     @AfterEach
@@ -62,8 +61,8 @@ class NoticeControllerTest extends MockTestConfig {
         Map<String, String> map = TokenUtil.createTokenMap(savedUser);
         String accessToken = jwtService.generateAccessToken(map, savedUser);
 
-        when(authService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.of(savedUser));
-        when(noticeService.ReadNoticeList(any(UserInfoResponse.class), any(LocalDateTime.class), anyLong())).thenReturn(List.of(UserNoticeList.builder().build()));
+        when(mockAuthService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.of(savedUser));
+        when(mockNoticeService.ReadNoticeList(any(UserInfoResponse.class), any(LocalDateTime.class), anyLong())).thenReturn(List.of(UserNoticeList.builder().build()));
 
         // when
         mockMvc.perform(get("/notice")
@@ -74,8 +73,8 @@ class NoticeControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$").isNotEmpty());
+
     }
 
     @Test
@@ -86,7 +85,7 @@ class NoticeControllerTest extends MockTestConfig {
         String accessToken = jwtService.generateAccessToken(map, savedUser);
 
 
-        when(authService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.of(savedUser));
+        when(mockAuthService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.of(savedUser));
 
         // when
         mockMvc.perform(delete("/notice/" + "stringId")
@@ -94,8 +93,8 @@ class NoticeControllerTest extends MockTestConfig {
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
 
                 // then
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
     }
 
     @Test
@@ -105,7 +104,7 @@ class NoticeControllerTest extends MockTestConfig {
         Map<String, String> map = TokenUtil.createTokenMap(savedUser);
         String accessToken = jwtService.generateAccessToken(map, savedUser);
 
-        when(authService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.of(savedUser));
+        when(mockAuthService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.of(savedUser));
 
         // when
         mockMvc.perform(delete("/notice")
@@ -113,7 +112,6 @@ class NoticeControllerTest extends MockTestConfig {
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
 
                 // then
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
     }
 }

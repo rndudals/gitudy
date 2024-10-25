@@ -37,7 +37,6 @@ import static com.example.backend.auth.config.fixture.UserFixture.generateAuthUs
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -54,10 +53,11 @@ class CategoryControllerTest extends MockTestConfig {
     @Autowired
     private UserRepository userRepository;
 
-    @MockBean
-    private CategoryService categoryService;
-    @MockBean
-    private AuthService authService;
+    @Autowired
+    private CategoryService mockCategoryService;
+
+    @Autowired
+    private AuthService mockAuthService;
 
     @Autowired
     private StudyCategoryRepository studyCategoryRepository;
@@ -85,16 +85,16 @@ class CategoryControllerTest extends MockTestConfig {
         String accessToken = jwtService.generateAccessToken(map, user);
 
         // when
-        when(authService.findUserInfo(any())).thenReturn(UserInfoResponse.of(user));
-        doNothing().when(categoryService).registerCategory(request);
+        when(mockAuthService.findUserInfo(any())).thenReturn(UserInfoResponse.of(user));
+        doNothing().when(mockCategoryService).registerCategory(request);
 
         // then
         mockMvc.perform(post("/category")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken))
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
     }
 
     @Test
@@ -112,8 +112,8 @@ class CategoryControllerTest extends MockTestConfig {
                 .build();
 
         // when
-        when(authService.findUserInfo(any())).thenReturn(UserInfoResponse.of(user));
-        doNothing().when(categoryService).registerCategory(request);
+        when(mockAuthService.findUserInfo(any())).thenReturn(UserInfoResponse.of(user));
+        doNothing().when(mockCategoryService).registerCategory(request);
 
         //when, then
         mockMvc.perform(post("/category")
@@ -122,8 +122,8 @@ class CategoryControllerTest extends MockTestConfig {
                         .content(objectMapper.writeValueAsString(request)))
 
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(expectedError))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value(expectedError));
+
     }
 
     @Test
@@ -141,8 +141,8 @@ class CategoryControllerTest extends MockTestConfig {
                 .build();
 
         // when
-        when(authService.findUserInfo(any())).thenReturn(UserInfoResponse.of(user));
-        doNothing().when(categoryService).registerCategory(request);
+        when(mockAuthService.findUserInfo(any())).thenReturn(UserInfoResponse.of(user));
+        doNothing().when(mockCategoryService).registerCategory(request);
 
         //when, then
         mockMvc.perform(post("/category")
@@ -151,8 +151,8 @@ class CategoryControllerTest extends MockTestConfig {
                         .content(objectMapper.writeValueAsString(request)))
 
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(expectedError))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value(expectedError));
+
     }
 
     @Test
@@ -170,16 +170,16 @@ class CategoryControllerTest extends MockTestConfig {
                 .build();
 
         //when
-        when(authService.authenticate(any(Long.class), any(User.class))).thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(categoryService).updateCategory(any(CategoryUpdateRequest.class), any(Long.class));
+        when(mockAuthService.authenticate(any(Long.class), any(User.class))).thenReturn(UserInfoResponse.of(savedUser));
+        doNothing().when(mockCategoryService).updateCategory(any(CategoryUpdateRequest.class), any(Long.class));
 
         //then
         mockMvc.perform(patch("/category/" + studyCategory.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken))
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
     }
 
     @Test
@@ -200,8 +200,8 @@ class CategoryControllerTest extends MockTestConfig {
                 .build();
 
         // when
-        when(authService.findUserInfo(any())).thenReturn(UserInfoResponse.of(user));
-        doNothing().when(categoryService).updateCategory(request, studyCategory.getId());
+        when(mockAuthService.findUserInfo(any())).thenReturn(UserInfoResponse.of(user));
+        doNothing().when(mockCategoryService).updateCategory(request, studyCategory.getId());
 
         //when, then
         mockMvc.perform(post("/category")
@@ -210,8 +210,8 @@ class CategoryControllerTest extends MockTestConfig {
                         .content(objectMapper.writeValueAsString(request)))
 
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(expectedError))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value(expectedError));
+
     }
 
     @Test
@@ -232,8 +232,8 @@ class CategoryControllerTest extends MockTestConfig {
                 .build();
 
         // when
-        when(authService.findUserInfo(any())).thenReturn(UserInfoResponse.of(user));
-        doNothing().when(categoryService).updateCategory(request, studyCategory.getId());
+        when(mockAuthService.findUserInfo(any())).thenReturn(UserInfoResponse.of(user));
+        doNothing().when(mockCategoryService).updateCategory(request, studyCategory.getId());
 
         //when, then
         mockMvc.perform(patch("/category/" + studyCategory.getId())
@@ -242,8 +242,8 @@ class CategoryControllerTest extends MockTestConfig {
                         .content(objectMapper.writeValueAsString(request)))
 
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(expectedError))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value(expectedError));
+
     }
 
     @Test
@@ -262,7 +262,7 @@ class CategoryControllerTest extends MockTestConfig {
 
         //when
         doThrow(new CategoryException(ExceptionMessage.CATEGORY_NOT_FOUND))
-                .when(categoryService)
+                .when(mockCategoryService)
                 .updateCategory(any(), any());
 
         //then
@@ -271,8 +271,8 @@ class CategoryControllerTest extends MockTestConfig {
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(ExceptionMessage.CATEGORY_NOT_FOUND.getText()))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value(ExceptionMessage.CATEGORY_NOT_FOUND.getText()));
+
     }
 
     @Test
@@ -287,15 +287,15 @@ class CategoryControllerTest extends MockTestConfig {
                 = studyCategoryRepository.save(StudyCategoryFixture.createDefaultPublicStudyCategory("name"));
 
         //when
-        when(authService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.builder().build());
-        doNothing().when(categoryService).deleteCategory(any(Long.class));
+        when(mockAuthService.findUserInfo(any(User.class))).thenReturn(UserInfoResponse.builder().build());
+        doNothing().when(mockCategoryService).deleteCategory(any(Long.class));
 
         //then
         mockMvc.perform(delete("/category/" + studyCategory.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
     }
 
     @Test
@@ -312,7 +312,7 @@ class CategoryControllerTest extends MockTestConfig {
 
         //when
         doThrow(new AuthException(ExceptionMessage.UNAUTHORIZED_AUTHORITY))
-                .when(authService)
+                .when(mockAuthService)
                 .findUserInfo(any(User.class));
 
         //then
@@ -320,8 +320,8 @@ class CategoryControllerTest extends MockTestConfig {
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(ExceptionMessage.UNAUTHORIZED_AUTHORITY.getText()))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value(ExceptionMessage.UNAUTHORIZED_AUTHORITY.getText()));
+
     }
 
     @Test
@@ -336,8 +336,8 @@ class CategoryControllerTest extends MockTestConfig {
         CategoryListAndCursorIdxResponse response
                 = StudyCategoryFixture.generateCategoryListAndCursorIdxResponse(3);
 
-        when(authService.authenticate(any(Long.class), any(User.class))).thenReturn(UserInfoResponse.builder().build());
-        when(categoryService.selectCategoryList(any(Long.class), any(Long.class), any(Long.class)))
+        when(mockAuthService.authenticate(any(Long.class), any(User.class))).thenReturn(UserInfoResponse.builder().build());
+        when(mockCategoryService.selectCategoryList(any(Long.class), any(Long.class), any(Long.class)))
                 .thenReturn(response);
 
         // when
@@ -349,8 +349,8 @@ class CategoryControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.category_response_list").isNotEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$.category_response_list").isNotEmpty());
+
     }
 
     @Test
@@ -365,7 +365,7 @@ class CategoryControllerTest extends MockTestConfig {
 
         //when
         doThrow(new AuthException(ExceptionMessage.UNAUTHORIZED_AUTHORITY))
-                .when(authService)
+                .when(mockAuthService)
                 .findUserInfo(any(User.class));
 
         mockMvc.perform(get("/category/" + studyInfo.getId())
@@ -376,8 +376,8 @@ class CategoryControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(ExceptionMessage.UNAUTHORIZED_AUTHORITY.getText()))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value(ExceptionMessage.UNAUTHORIZED_AUTHORITY.getText()));
+
     }
 
     @Test
@@ -399,8 +399,8 @@ class CategoryControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("400 BAD_REQUEST \"Validation failure\""))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value("400 BAD_REQUEST \"Validation failure\""));
+
     }
 
     @Test
@@ -413,7 +413,7 @@ class CategoryControllerTest extends MockTestConfig {
         Map<String, String> map = TokenUtil.createTokenMap(user);
         String accessToken = jwtService.generateAccessToken(map, user);
 
-        when(categoryService.selectCategoryList()).thenReturn(List.of(CategoryResponse.builder().id(categoryId).name(categoryName).build()));
+        when(mockCategoryService.selectCategoryList()).thenReturn(List.of(CategoryResponse.builder().id(categoryId).name(categoryName).build()));
 
         // when
         mockMvc.perform(get("/category/")
@@ -423,8 +423,8 @@ class CategoryControllerTest extends MockTestConfig {
                 // then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(categoryId))
-                .andExpect(jsonPath("$[0].name").value(categoryName))
-                .andDo(print());
+                .andExpect(jsonPath("$[0].name").value(categoryName));
+
 
     }
 }

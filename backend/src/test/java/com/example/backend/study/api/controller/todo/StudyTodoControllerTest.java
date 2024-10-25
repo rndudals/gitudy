@@ -40,10 +40,10 @@ import java.util.Map;
 
 import static com.example.backend.auth.config.fixture.UserFixture.generateAuthUser;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -74,11 +74,11 @@ public class StudyTodoControllerTest extends MockTestConfig {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
-    private StudyTodoService studyTodoService;
+    @Autowired
+    private StudyTodoService mockStudyTodoService;
 
-    @MockBean
-    private StudyMemberService studyMemberService;
+    @Autowired
+    private StudyMemberService mockStudyMemberService;
 
     @AfterEach
     void tearDown() {
@@ -105,17 +105,17 @@ public class StudyTodoControllerTest extends MockTestConfig {
 
         StudyTodoRequest studyTodoRequest = StudyTodoFixture.generateStudyTodoRequest();
 
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyTodoService).registerStudyTodo(any(StudyTodoRequest.class), any(Long.class));
+        doNothing().when(mockStudyTodoService).registerStudyTodo(any(StudyTodoRequest.class), any(Long.class));
 
         //when , then
         mockMvc.perform(post("/study/" + studyInfo.getId() + "/todo")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken))
                         .content(objectMapper.writeValueAsString(studyTodoRequest)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
 
     }
 
@@ -142,17 +142,17 @@ public class StudyTodoControllerTest extends MockTestConfig {
 
 
         //when
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyTodoService).updateStudyTodo(any(StudyTodoUpdateRequest.class), any(Long.class), any(Long.class));
+        doNothing().when(mockStudyTodoService).updateStudyTodo(any(StudyTodoUpdateRequest.class), any(Long.class), any(Long.class));
 
         //then
         mockMvc.perform(put("/study/" + studyInfo.getId() + "/todo/" + studyTodo.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken))
                         .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
 
     }
 
@@ -171,17 +171,17 @@ public class StudyTodoControllerTest extends MockTestConfig {
 
 
         //when
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyTodoService).deleteStudyTodo(any(Long.class), any(Long.class));
+        doNothing().when(mockStudyTodoService).deleteStudyTodo(any(Long.class), any(Long.class));
 
 
         //then
         mockMvc.perform(delete("/study/" + studyInfo.getId() + "/todo/" + studyTodo.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
     }
 
     @Test
@@ -199,9 +199,9 @@ public class StudyTodoControllerTest extends MockTestConfig {
                 .build();
         response.setNextCursorIdx();
 
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        when(studyTodoService.readStudyTodoList(any(Long.class), any(Long.class), any(Long.class))).thenReturn(response);
+        when(mockStudyTodoService.readStudyTodoList(any(Long.class), any(Long.class), any(Long.class))).thenReturn(response);
 
         // when
         mockMvc.perform(get("/study/" + studyInfo.getId() + "/todo")
@@ -212,8 +212,8 @@ public class StudyTodoControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$").isNotEmpty());
+
     }
 
     @Test
@@ -231,9 +231,9 @@ public class StudyTodoControllerTest extends MockTestConfig {
                 .build();
         response.setNextCursorIdx();
 
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        when(studyTodoService.readStudyTodoList(any(Long.class), any(), any(Long.class))).thenReturn(response);
+        when(mockStudyTodoService.readStudyTodoList(any(Long.class), any(), any(Long.class))).thenReturn(response);
 
         // when
         mockMvc.perform(get("/study/" + studyInfo.getId() + "/todo")
@@ -243,8 +243,8 @@ public class StudyTodoControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$").isNotEmpty());
+
     }
 
     @Test
@@ -262,8 +262,8 @@ public class StudyTodoControllerTest extends MockTestConfig {
 
         StudyTodoResponse response = StudyTodoResponse.of(studyTodo);
 
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
-        when(studyTodoService.readStudyTodo(any(Long.class), any(Long.class))).thenReturn(response);
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
+        when(mockStudyTodoService.readStudyTodo(any(Long.class), any(Long.class))).thenReturn(response);
 
         // when
         mockMvc.perform(get("/study/" + studyInfo.getId() + "/todo/" + studyTodo.getId())
@@ -272,8 +272,8 @@ public class StudyTodoControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value(response.getTitle()))
-                .andDo(print());
+                .andExpect(jsonPath("$.title").value(response.getTitle()));
+
     }
 
     @Test
@@ -298,9 +298,9 @@ public class StudyTodoControllerTest extends MockTestConfig {
                         .build()
         );
 
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        when(studyTodoService.readStudyTodoStatus(any(Long.class), any(Long.class))).thenReturn(response);
+        when(mockStudyTodoService.readStudyTodoStatus(any(Long.class), any(Long.class))).thenReturn(response);
 
         // when
         mockMvc.perform(get("/study/" + studyInfo.getId() + "/todo/" + 1L + "/status")
@@ -309,8 +309,8 @@ public class StudyTodoControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$").isNotEmpty());
+
     }
 
     @Test
@@ -326,9 +326,9 @@ public class StudyTodoControllerTest extends MockTestConfig {
                 .completeMemberCount(5)
                 .build();
 
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        when(studyTodoService.readStudyTodoProgress(any(Long.class))).thenReturn(response);
+        when(mockStudyTodoService.readStudyTodoProgress(anyLong(), any(Long.class))).thenReturn(response);
 
         // when
         mockMvc.perform(get("/study/" + 1L + "/todo/progress")
@@ -337,8 +337,8 @@ public class StudyTodoControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$").isNotEmpty());
+
     }
 
     @Test
@@ -350,9 +350,9 @@ public class StudyTodoControllerTest extends MockTestConfig {
 
         List<CommitInfoResponse> list = List.of(CommitInfoResponse.builder().commitSHA("tt").build());
 
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        when(studyTodoService.selectTodoCommits(any(Long.class)))
+        when(mockStudyTodoService.selectTodoCommits(any(Long.class)))
                 .thenReturn(list);
 
         // when
@@ -362,7 +362,7 @@ public class StudyTodoControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].commit_sha").value("tt"))
-                .andDo(print());
+                .andExpect(jsonPath("$[0].commit_sha").value("tt"));
+
     }
 }

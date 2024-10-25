@@ -34,7 +34,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -56,11 +55,11 @@ public class StudyConventionControllerTest extends MockTestConfig {
     @Autowired
     private StudyConventionRepository studyConventionRepository;
 
-    @MockBean
-    private StudyMemberService studyMemberService;
+    @Autowired
+    private StudyMemberService mockStudyMemberService;
 
-    @MockBean
-    private StudyConventionService studyConventionService;
+    @Autowired
+    private StudyConventionService mockStudyConventionService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -86,16 +85,16 @@ public class StudyConventionControllerTest extends MockTestConfig {
 
         StudyConventionRequest request = StudyConventionFixture.generateStudyConventionRequest();
 
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyConventionService).registerStudyConvention(any(StudyConventionRequest.class), any(Long.class));
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
+        doNothing().when(mockStudyConventionService).registerStudyConvention(any(StudyConventionRequest.class), any(Long.class));
 
         //when , then
         mockMvc.perform(post("/study/" + studyInfo.getId() + "/convention")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken))
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
 
     }
 
@@ -122,8 +121,8 @@ public class StudyConventionControllerTest extends MockTestConfig {
                                 .build())))
 
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(expectedError))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value(expectedError));
+
     }
 
     @Test
@@ -142,8 +141,8 @@ public class StudyConventionControllerTest extends MockTestConfig {
 
         StudyConventionUpdateRequest updateRequest = StudyConventionFixture.generateStudyConventionUpdateRequest();
 
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyConventionService).updateStudyConvention(any(StudyConventionUpdateRequest.class), any(Long.class));
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
+        doNothing().when(mockStudyConventionService).updateStudyConvention(any(StudyConventionUpdateRequest.class), any(Long.class));
 
 
         //when, then
@@ -152,8 +151,8 @@ public class StudyConventionControllerTest extends MockTestConfig {
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken))
                         .content(objectMapper.writeValueAsString(updateRequest)))
 
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
 
     }
 
@@ -175,8 +174,8 @@ public class StudyConventionControllerTest extends MockTestConfig {
         studyConventionRepository.save(studyConvention);
 
 
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyConventionService).updateStudyConvention(any(StudyConventionUpdateRequest.class), any(Long.class));
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
+        doNothing().when(mockStudyConventionService).updateStudyConvention(any(StudyConventionUpdateRequest.class), any(Long.class));
 
 
         //when, then
@@ -190,8 +189,8 @@ public class StudyConventionControllerTest extends MockTestConfig {
                                 .build())))
 
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(expectedError))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value(expectedError));
+
     }
 
     @Test
@@ -208,17 +207,17 @@ public class StudyConventionControllerTest extends MockTestConfig {
         studyConventionRepository.save(studyConvention);
 
         //when
-        when(studyMemberService.isValidateStudyLeader(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyLeader(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyConventionService).deleteStudyConvention(any(Long.class));
+        doNothing().when(mockStudyConventionService).deleteStudyConvention(any(Long.class));
 
 
         //then
         mockMvc.perform(delete("/study/" + studyInfo.getId() + "/convention/" + studyConvention.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
     }
 
     @Test
@@ -236,9 +235,9 @@ public class StudyConventionControllerTest extends MockTestConfig {
 
         StudyConventionResponse response = StudyConventionResponse.of(studyConvention);
 
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        when(studyConventionService.readStudyConvention(any(Long.class))).thenReturn(response);
+        when(mockStudyConventionService.readStudyConvention(any(Long.class))).thenReturn(response);
 
         // when, then
         mockMvc.perform(get("/study/" + studyInfo.getId() + "/convention/" + studyConvention.getId())
@@ -246,8 +245,8 @@ public class StudyConventionControllerTest extends MockTestConfig {
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(response.getName()))
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$").isNotEmpty());
+
     }
 
     @Test
@@ -268,9 +267,9 @@ public class StudyConventionControllerTest extends MockTestConfig {
                 .build();
         response.setNextCursorIdx();
 
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        when(studyConventionService.readStudyConventionList(any(Long.class), any(Long.class), any(Long.class))).thenReturn(response);
+        when(mockStudyConventionService.readStudyConventionList(any(Long.class), any(Long.class), any(Long.class))).thenReturn(response);
 
         // when, then
         mockMvc.perform(get("/study/" + studyInfo.getId() + "/convention")
@@ -280,8 +279,8 @@ public class StudyConventionControllerTest extends MockTestConfig {
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
 
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$").isNotEmpty());
+
     }
 
     @Test
@@ -302,9 +301,9 @@ public class StudyConventionControllerTest extends MockTestConfig {
                 .build();
         response.setNextCursorIdx();
 
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        when(studyConventionService.readStudyConventionList(any(Long.class), any(), any(Long.class))).thenReturn(response);
+        when(mockStudyConventionService.readStudyConventionList(any(Long.class), any(), any(Long.class))).thenReturn(response);
 
         // when, then
         mockMvc.perform(get("/study/" + studyInfo.getId() + "/convention")
@@ -312,7 +311,7 @@ public class StudyConventionControllerTest extends MockTestConfig {
                         .param("limit", "1")
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
 
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
+
     }
 }

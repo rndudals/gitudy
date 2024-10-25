@@ -1,11 +1,13 @@
 package com.takseha.data.repository.gitudy
 
-import com.takseha.data.api.gitudy.RetrofitInstance
 import com.takseha.data.api.gitudy.GitudyStudyService
+import com.takseha.data.api.gitudy.RetrofitInstance
 import com.takseha.data.dto.feed.CheckRepoNameRequest
 import com.takseha.data.dto.feed.MakeStudyRequest
+import com.takseha.data.dto.mystudy.CommentRequest
 import com.takseha.data.dto.mystudy.MakeTodoRequest
 import com.takseha.data.dto.mystudy.SetConventionRequest
+import com.takseha.data.dto.mystudy.UpdateStudyInfoRequest
 
 class GitudyStudyRepository {
     private val client = RetrofitInstance.getInstance().create(GitudyStudyService::class.java)
@@ -20,6 +22,10 @@ class GitudyStudyRepository {
     suspend fun getStudyCount(
         myStudy: Boolean
     ) = client.getStudyCount(myStudy)
+
+    suspend fun getStudyRank(
+        studyInfoId: Int
+    ) = client.getStudyRank(studyInfoId)
 
     suspend fun makeNewStudy(
         request: MakeStudyRequest
@@ -64,6 +70,14 @@ class GitudyStudyRepository {
         studyInfoId: Int
     ) = client.getStudyInfo(studyInfoId)
 
+    suspend fun deleteStudy(
+        studyInfoId: Int
+    ) = client.deleteStudy(studyInfoId)
+
+    suspend fun endStudy(
+        studyInfoId: Int
+    ) = client.endStudy(studyInfoId)
+
     suspend fun setConvention(
         studyInfoId: Int,
         request: SetConventionRequest
@@ -81,14 +95,19 @@ class GitudyStudyRepository {
 
     suspend fun makeStudyComment(
         studyInfoId: Int,
-        content: String
-    ) = client.makeStudyComment(studyInfoId, content)
+        request: CommentRequest
+    ) = client.makeStudyComment(studyInfoId, request)
 
     suspend fun updateStudyComment(
         studyInfoId: Int,
         studyCommentId: Int,
-        content: String
-    ) = client.updateStudyComment(studyInfoId, studyCommentId, content)
+        request: CommentRequest
+    ) = client.updateStudyComment(studyInfoId, studyCommentId, request)
+
+    suspend fun updateStudyInfo(
+        studyInfoId: Int,
+        request: UpdateStudyInfoRequest
+    ) = client.updateStudyInfo(studyInfoId, request)
 
     suspend fun deleteStudyComment(
         studyInfoId: Int,

@@ -1,8 +1,8 @@
 package com.example.backend.domain.define.study.info.repository;
 
 import com.example.backend.domain.define.study.info.StudyInfo;
-import com.example.backend.domain.define.study.member.constant.StudyMemberStatus;
 import com.example.backend.domain.define.study.info.constant.StudyStatus;
+import com.example.backend.domain.define.study.member.constant.StudyMemberStatus;
 import com.example.backend.study.api.controller.info.response.StudyInfoListResponse;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -14,6 +14,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -135,6 +136,22 @@ public class StudyInfoRepositoryImpl implements StudyInfoRepositoryCustom {
                 .where(studyInfo.repositoryInfo.owner.eq(owner)
                         .and(studyInfo.repositoryInfo.name.eq(repositoryName)))
                 .fetchOne());
+    }
+
+    @Override
+    @Transactional
+    public void closeStudiesOwnedByUserId(Long userId) {
+        List<Long> studyIdList = queryFactory.select(studyInfo.id)
+                .from(studyInfo)
+                .where(studyInfo.userId.eq(userId))
+                .fetch();
+
+        if (studyIdList.isEmpty()) return;
+
+        queryFactory.update(studyInfo)
+                .set(studyInfo.status, StudyStatus.STUDY_INACTIVE)
+                .where(studyInfo.id.in(studyIdList))
+                .execute();
     }
 
 }

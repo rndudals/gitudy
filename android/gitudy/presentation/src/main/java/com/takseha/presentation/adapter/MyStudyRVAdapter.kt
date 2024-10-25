@@ -1,7 +1,6 @@
 package com.takseha.presentation.adapter
 
 import android.content.Context
-import android.graphics.Color
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +10,7 @@ import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.takseha.data.dto.feed.StudyStatus
 import com.takseha.data.dto.mystudy.TodoStatus
 import com.takseha.presentation.R
 import com.takseha.presentation.databinding.ItemMystudyBinding
@@ -35,8 +35,8 @@ class MyStudyRVAdapter(val context : Context, val studyInfoList : List<MyStudyWi
         val todoTimeText = binding.todoTimeText
         val todoTime = binding.todoTime
         val todoCheckNum = binding.todoCheckNum
-        val totalNum = binding.totalNum
         val progressBar = binding.progressBar
+        val studyEndTag = binding.studyEndTag
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -62,14 +62,27 @@ class MyStudyRVAdapter(val context : Context, val studyInfoList : List<MyStudyWi
         val studyInfo = studyInfoList[position].studyInfo
         val urgentTodo = studyInfoList[position].urgentTodo!!
 
-        holder.studyImg.setCardBackgroundColor(Color.parseColor(studyInfo.profileImageUrl))
+        if (studyInfo.status != StudyStatus.STUDY_INACTIVE) {
+            val studyImage = setStudyImg(studyInfo.profileImageUrl.toIntOrNull() ?: 0)
+            holder.studyImg.setImageResource(studyImage)
+            holder.leaderTag.visibility = if (studyInfo.isLeader) VISIBLE else GONE
+            holder.studyEndTag.visibility = GONE
+            holder.todoCheckNum.text = context.getString(R.string.study_todo_check_num, urgentTodo.completeMemberCount, studyInfo.currentMember)
+            holder.progressBar.progress = urgentTodo.completeMemberCount ?: 0
+            holder.progressBar.max = studyInfo.currentMember
+        } else {
+            holder.studyImg.setImageResource(R.drawable.bg_mystudy_small_default)
+            holder.leaderTag.visibility = GONE
+            holder.studyEndTag.visibility = VISIBLE
+            holder.todoCheckNum.text = context.getString(R.string.study_todo_check_num, 0, studyInfo.currentMember)
+            holder.progressBar.progress = 0
+            holder.progressBar.max = studyInfo.currentMember
+            holder.noTodoAlarm.setTextColor(R.color.GS_300)
+            holder.studyName.setTextColor(R.color.GS_300)
+            holder.teamScore.setTextColor(R.color.GS_300)
+        }
         holder.studyName.text = studyInfo.topic
-        holder.leaderTag.visibility = if (studyInfo.isLeader) VISIBLE else GONE
         holder.teamScore.text = "${studyInfo.score}점"
-        holder.todoCheckNum.text = "${urgentTodo.completeMemberCount ?: 0}/"
-        holder.totalNum.text = studyInfo.currentMember.toString()
-        holder.progressBar.progress = urgentTodo.completeMemberCount ?: 0
-        holder.progressBar.max = studyInfo.currentMember
 
         if (urgentTodo.todo == null) {
             holder.noTodoAlarm.visibility = VISIBLE
@@ -85,8 +98,15 @@ class MyStudyRVAdapter(val context : Context, val studyInfoList : List<MyStudyWi
             holder.todoTime.visibility = VISIBLE
             holder.todoTitle.text = urgentTodo.todo!!.title
             holder.todoTime.text = urgentTodo.todo!!.todoDate
-            if (urgentTodo.completeMemberCount == urgentTodo.totalMemberCount) {
+
+            if (urgentTodo.myStatus == TodoStatus.TODO_COMPLETE) {
                 holder.todoCheck.text = "완료"
+                holder.todoCheck.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.BASIC_BLUE
+                    )
+                )
             } else {
                 holder.todoCheck.text = "미완료"
                 if (urgentTodo.todo?.todoDate == LocalDate.now().toString()) {
@@ -98,6 +118,21 @@ class MyStudyRVAdapter(val context : Context, val studyInfoList : List<MyStudyWi
                     )
                 }
             }
+        }
+    }
+
+    private fun setStudyImg(currentIdx: Int): Int {
+        return when (currentIdx) {
+            0 -> R.drawable.bg_mystudy_small_10
+            1 -> R.drawable.bg_mystudy_small_9
+            2 -> R.drawable.bg_mystudy_small_8
+            3 -> R.drawable.bg_mystudy_small_7
+            4 -> R.drawable.bg_mystudy_small_6
+            5 -> R.drawable.bg_mystudy_small_5
+            6 -> R.drawable.bg_mystudy_small_4
+            7 -> R.drawable.bg_mystudy_small_3
+            8 -> R.drawable.bg_mystudy_small_2
+            else -> R.drawable.bg_mystudy_small_1
         }
     }
 

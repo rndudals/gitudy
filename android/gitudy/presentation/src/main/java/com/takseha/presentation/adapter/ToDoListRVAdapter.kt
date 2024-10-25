@@ -5,6 +5,8 @@ import android.os.Build
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.annotation.RequiresApi
@@ -15,14 +17,14 @@ import com.takseha.data.dto.mystudy.Commit
 import com.takseha.data.dto.mystudy.Todo
 import com.takseha.presentation.R
 import com.takseha.presentation.databinding.ItemTodoBinding
+import com.takseha.presentation.ui.common.UTCToKoreanTimeConverter
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-class ToDoListRVAdapter(val context: Context, val todoList: List<Todo>) :
+class ToDoListRVAdapter(val context: Context, val todoList: List<Todo>, val isLeader: Boolean?) :
     RecyclerView.Adapter<ToDoListRVAdapter.ViewHolder>() {
     interface OnClickListener {
         fun onCommitClick(commit: Commit)
-        fun onUpdateClick(view: View, position: Int)
         fun onDeleteClick(view: View, position: Int)
         fun onLinkClick(view: View, position: Int)
     }
@@ -47,12 +49,11 @@ class ToDoListRVAdapter(val context: Context, val todoList: List<Todo>) :
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.todoSetDate.text =
-            LocalDateTime.parse(todoList[position].todoSetDate).toLocalDate().toString()
+        val localDateTime = LocalDateTime.parse(todoList[position].todoSetDate)
+        holder.todoSetDate.text = UTCToKoreanTimeConverter().convertToKoreaDate(localDateTime)
         holder.todoTitle.text = todoList[position].title
         holder.todoDate.text = todoList[position].todoDate
         holder.todoDetail.text = todoList[position].detail
-//        setCommitList(holder.commitList, todoList[position].commitList)
         setCommitList(holder, position)
 
         if (todoList[position].todoDate == LocalDate.now().toString()) {
@@ -62,6 +63,12 @@ class ToDoListRVAdapter(val context: Context, val todoList: List<Todo>) :
                     R.color.BASIC_RED
                 )
             )
+        }
+
+        if (isLeader == true) {
+            holder.moreBtn.visibility = VISIBLE
+        } else {
+            holder.moreBtn.visibility = GONE
         }
 
         holder.moreBtn.setOnClickListener { v ->
@@ -74,13 +81,6 @@ class ToDoListRVAdapter(val context: Context, val todoList: List<Todo>) :
         }
     }
 
-//    private fun setCommitList(commitListView: RecyclerView, commitList: List<Commit>) {
-//        val commitListRVAdapter = CommitListRVAdapter(context, commitList, this.onClickListener!!)
-//
-//        commitListView.adapter = commitListRVAdapter
-//        commitListView.layoutManager = LinearLayoutManager(context)
-//    }
-
     private fun setCommitList(holder: ViewHolder, position: Int) {
         holder.commitList.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
@@ -90,16 +90,10 @@ class ToDoListRVAdapter(val context: Context, val todoList: List<Todo>) :
 
     private fun showPopupMenu(view: View, position: Int) {
         val popup = PopupMenu(context, view)
-        popup.inflate(R.menu.update_delete_menu)
+        popup.inflate(R.menu.delete_menu)
 
         popup.setOnMenuItemClickListener { item: MenuItem ->
             when (item.itemId) {
-                R.id.menu_edit -> {
-                    // 수정 버튼 클릭 처리
-                    this.onClickListener?.onUpdateClick(view, position)
-                    true
-                }
-
                 R.id.menu_delete -> {
                     // 삭제 버튼 클릭 처리
                     this.onClickListener?.onDeleteClick(view, position)

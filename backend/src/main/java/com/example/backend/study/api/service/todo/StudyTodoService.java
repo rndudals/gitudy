@@ -4,6 +4,8 @@ package com.example.backend.study.api.service.todo;
 import com.example.backend.common.exception.ExceptionMessage;
 import com.example.backend.common.exception.study.StudyInfoException;
 import com.example.backend.common.exception.todo.TodoException;
+import com.example.backend.domain.define.account.user.User;
+import com.example.backend.domain.define.study.commit.StudyCommit;
 import com.example.backend.domain.define.study.commit.repository.StudyCommitRepository;
 import com.example.backend.domain.define.study.github.GithubApiToken;
 import com.example.backend.domain.define.study.info.StudyInfo;
@@ -84,7 +86,10 @@ public class StudyTodoService {
         List<Long> isPushAlarmYUserIds = userService.findIsPushAlarmYsByIdsOrThrowException(activeMemberUserIds);
 
         // 투두에 해당하는 폴더를 스터디 레포지토리에 생성
+        log.info("투두 폴더를 레포지토리에 생성하기 전 토큰 조회 중.. (userId: {})", studyInfo.getUserId());
         GithubApiToken token = githubApiTokenService.getToken(studyInfo.getUserId());
+        log.info("투두 폴더를 레포지토리에 생성하기 전 토큰 조회 완료 (userId: {})", studyInfo.getUserId());
+
         githubApiService.createTodoFolder(token.githubApiToken(), studyTodo, studyInfo.getRepositoryInfo());
 
         // 알림 비동기처리
@@ -244,30 +249,44 @@ public class StudyTodoService {
                 .toList();
     }
 
-    @Transactional
-    public StudyTodoProgressResponse readStudyTodoProgress(Long studyInfoId) {
-        // 해당 스터디에서 활동중인 스터디원 인원수
-        int memberCount = studyMemberRepository.findActiveMembersByStudyInfoId(studyInfoId).size();
+    public StudyTodoProgressResponse readStudyTodoProgress(Long userId, Long studyInfoId) {
 
         // 오늘이거나 오늘 이후의 To-do 중 가장 마감일이 빠른 To-do
         return studyTodoRepository.findStudyTodoByStudyInfoIdWithEarliestDueDate(studyInfoId)
                 .map(todo -> {
+                    // 해당 스터디에서 활동중인 스터디원 인원수
+                    int memberCount = studyMemberRepository.findActiveMembersByStudyInfoId(studyInfoId).size();
+
                     // 투두 완료 멤버 인원 수
                     int completeMemberCount = studyTodoMappingRepository.findCompleteTodoMappingCountByTodoId(todo.getId());
 
-                    return StudyTodoProgressResponse.builder()
-                            .todo(StudyTodoResponse.of(todo))
-                            .totalMemberCount(memberCount)
-                            .completeMemberCount(completeMemberCount)
-                            .build();
+                    // 자신의 투두 완료 여부 확인
+                    return studyTodoMappingRepository.findByTodoIdAndUserId(todo.getId(), userId)
+                            .map(todoMapping -> StudyTodoProgressResponse.builder()
+                                    .todo(StudyTodoResponse.of(todo))
+                                    .totalMemberCount(memberCount)
+                                    .completeMemberCount(completeMemberCount)
+                                    .myStatus(todoMapping.getStatus())
+                                    .build())
+                            .orElseGet(StudyTodoProgressResponse::empty);
                 })
                 .orElseGet(StudyTodoProgressResponse::empty);
     }
 
     public List<CommitInfoResponse> selectTodoCommits(Long todoId) {
+        // 커밋 목록 조회
+        List<StudyCommit> commits = studyCommitRepository.findByStudyTodoIdOrderByCommitDateDesc(todoId);
 
-        return studyCommitRepository.findByStudyTodoIdOrderByCommitDateDesc(todoId).stream()
-                .map(CommitInfoResponse::of)
-                .toList();
+        // 커밋의 사용자 이름을 포함한 응답 리스트 생성
+        return commits.stream()
+                .map(commit -> {
+                    // 커밋의 사용자 정보 조회
+                    User user = userService.findUserByIdOrThrowException(commit.getUserId());
+                    String userName = user.getName();
+                    String profileImageUrl = user.getProfileImageUrl();
+                    // 사용자 이름을 포함한 CommitInfoResponse 객체 생성
+                    return CommitInfoResponse.of(commit, userName, profileImageUrl);
+                })
+                .collect(Collectors.toList());
     }
 }

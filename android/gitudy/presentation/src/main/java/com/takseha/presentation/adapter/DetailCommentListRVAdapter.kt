@@ -12,19 +12,19 @@ import android.widget.PopupMenu
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.takseha.data.dto.mystudy.StudyComment
+import com.takseha.data.dto.mystudy.Comment
 import com.takseha.presentation.R
 import com.takseha.presentation.databinding.ItemCommentDetailBinding
+import com.takseha.presentation.ui.common.UTCToKoreanTimeConverter
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
-class DetailCommentListRVAdapter(val context: Context, val commentList: List<StudyComment>) :
+class DetailCommentListRVAdapter(val context: Context, val commentList: List<Comment>) :
     RecyclerView.Adapter<DetailCommentListRVAdapter.ViewHolder>() {
     interface OnClickListener {
         fun onDeleteClick(view: View, position: Int)
         fun onLikeClick(view: View, position: Int)
         fun onHeartClick(view: View, position: Int)
+        fun onReportClick(view: View, position: Int)
     }
 
     var onClickListener: OnClickListener? = null
@@ -35,8 +35,9 @@ class DetailCommentListRVAdapter(val context: Context, val commentList: List<Stu
         var date = binding.dateText
         var content = binding.contentText
         var moreBtn = binding.moreBtn
-        var likeBtn = binding.likeBtn
-        var heartBtn = binding.heartBtn
+        var moreReportBtn = binding.moreReportBtn
+//        var likeBtn = binding.likeBtn
+//        var heartBtn = binding.heartBtn
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -53,35 +54,50 @@ class DetailCommentListRVAdapter(val context: Context, val commentList: List<Stu
             .into(holder.profileImg)
 
         holder.writerName.text = commentList[position].userInfo.name
-        holder.date.text =
-            getCreatedDate(commentList[position].commentSetDate)
+        val localDateTime = LocalDateTime.parse(commentList[position].commentSetDate)
+        holder.date.text = UTCToKoreanTimeConverter().convertToKoreaTime(localDateTime)
         holder.content.text = commentList[position].content
 
         if (commentList[position].isMyComment) {
             holder.moreBtn.visibility = VISIBLE
+            holder.moreReportBtn.visibility = GONE
         } else {
             holder.moreBtn.visibility = GONE
+            holder.moreReportBtn.visibility = VISIBLE
         }
 
         holder.moreBtn.setOnClickListener { v ->
             // more 버튼 클릭 이벤트 처리
             showPopupMenu(v, position)
         }
-        holder.likeBtn.setOnClickListener { v ->
-            this.onClickListener?.onLikeClick(v, position)
+
+        holder.moreReportBtn.setOnClickListener { v ->
+            showReportPopupMenu(v, position)
         }
-        holder.heartBtn.setOnClickListener { v ->
-            this.onClickListener?.onHeartClick(v, position)
-        }
+//        holder.likeBtn.setOnClickListener { v ->
+//            this.onClickListener?.onLikeClick(v, position)
+//        }
+//        holder.heartBtn.setOnClickListener { v ->
+//            this.onClickListener?.onHeartClick(v, position)
+//        }
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun getCreatedDate(date: String): String {
-        val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm", Locale.getDefault())
-        val localDateTime = LocalDateTime.parse(date)
+    private fun showReportPopupMenu(view: View, position: Int) {
+        val popup = PopupMenu(context, view)
+        popup.inflate(R.menu.report_menu)
 
-        return localDateTime.format(dateFormat)
+        popup.setOnMenuItemClickListener { item: MenuItem ->
+            when (item.itemId) {
+                R.id.menu_report -> {
+                    // 신고 버튼 클릭 처리
+                    this.onClickListener?.onReportClick(view, position)
+                    true
+                }
+                else -> false
+            }
+        }
+        popup.show()
     }
 
     private fun showPopupMenu(view: View, position: Int) {

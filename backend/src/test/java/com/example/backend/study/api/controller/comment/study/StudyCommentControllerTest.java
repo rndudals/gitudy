@@ -36,7 +36,6 @@ import static com.example.backend.auth.config.fixture.UserFixture.generateAuthUs
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -53,11 +52,11 @@ class StudyCommentControllerTest extends MockTestConfig {
     @Autowired
     private StudyInfoRepository studyInfoRepository;
 
-    @MockBean
-    private AuthService authService;
+    @Autowired
+    private AuthService mockAuthService;
 
-    @MockBean
-    private StudyCommentService studyCommentService;
+    @Autowired
+    private StudyCommentService mockStudyCommentService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -65,8 +64,8 @@ class StudyCommentControllerTest extends MockTestConfig {
     @Autowired
     private StudyCommentRepository studyCommentRepository;
 
-    @MockBean
-    private StudyMemberService studyMemberService;
+    @Autowired
+    private StudyMemberService mockStudyMemberService;
 
     @AfterEach
     void tearDown() {
@@ -89,16 +88,15 @@ class StudyCommentControllerTest extends MockTestConfig {
 
         StudyCommentRegisterRequest studyCommentRegisterRequest = StudyCommentFixture.createDefaultStudyCommentRegisterRequest();
 
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyCommentService).registerStudyComment(any(StudyCommentRegisterRequest.class), any(Long.class), any(Long.class));
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
+        doNothing().when(mockStudyCommentService).registerStudyComment(any(StudyCommentRegisterRequest.class), any(Long.class), any(Long.class));
 
         //when , then
         mockMvc.perform(post("/study/" + studyInfo.getId() + "/comment")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken))
                         .content(objectMapper.writeValueAsString(studyCommentRegisterRequest)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -115,16 +113,15 @@ class StudyCommentControllerTest extends MockTestConfig {
         StudyCommentUpdateRequest studyCommentUpdateRequest = StudyCommentFixture.createDefaultStudyCommentUpdateRequest();
 
         //when
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyCommentService).registerStudyComment(any(StudyCommentRegisterRequest.class), any(Long.class), any(Long.class));
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserInfoResponse.of(savedUser));
+        doNothing().when(mockStudyCommentService).registerStudyComment(any(StudyCommentRegisterRequest.class), any(Long.class), any(Long.class));
 
         //then
         mockMvc.perform(patch("/study/" + studyInfo.getId() + "/comment/" + studyComment.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken))
                         .content(objectMapper.writeValueAsString(studyCommentUpdateRequest)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -140,15 +137,14 @@ class StudyCommentControllerTest extends MockTestConfig {
                 studyCommentRepository.save(StudyCommentFixture.createDefaultStudyComment(savedUser.getId(), studyInfo.getId()));
 
         //when
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class)))
                 .thenReturn(UserInfoResponse.of(savedUser));
-        doNothing().when(studyCommentService).deleteStudyComment(any(User.class), any(Long.class), any(Long.class));
+        doNothing().when(mockStudyCommentService).deleteStudyComment(any(User.class), any(Long.class), any(Long.class));
         //then
         mockMvc.perform(delete("/study/" + studyInfo.getId() + "/comment/" + studyComment.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, createAuthorizationHeader(accessToken)))
-                .andExpect(status().isOk())
-                .andDo(print());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -162,8 +158,8 @@ class StudyCommentControllerTest extends MockTestConfig {
 
         StudyCommentListAndCursorIdxResponse response
                 = StudyCommentFixture.generateStudyCommentListAndCursorIdxResponse(user.getId(), studyInfo.getId());
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserFixture.createDefaultUserInfoResponse(user.getId()));
-        when(studyCommentService.selectStudyCommentList(any(Long.class), any(Long.class), any(Long.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserFixture.createDefaultUserInfoResponse(user.getId()));
+        when(mockStudyCommentService.selectStudyCommentList(any(Long.class), any(Long.class), any(Long.class), any(Long.class)))
                 .thenReturn(response);
 
         // when
@@ -175,8 +171,7 @@ class StudyCommentControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.study_comment_list").isNotEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$.study_comment_list").isNotEmpty());
     }
 
     @Test
@@ -191,8 +186,8 @@ class StudyCommentControllerTest extends MockTestConfig {
         StudyCommentListAndCursorIdxResponse response
                 = StudyCommentFixture.generateStudyCommentListAndCursorIdxResponse(user.getId(), studyInfo.getId());
 
-        when(studyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserFixture.createDefaultUserInfoResponse(user.getId()));
-        when(studyCommentService.selectStudyCommentList(any(Long.class), any(), any(Long.class), any(Long.class)))
+        when(mockStudyMemberService.isValidateStudyMember(any(User.class), any(Long.class))).thenReturn(UserFixture.createDefaultUserInfoResponse(user.getId()));
+        when(mockStudyCommentService.selectStudyCommentList(any(Long.class), any(), any(Long.class), any(Long.class)))
                 .thenReturn(response);
 
         // when
@@ -203,8 +198,8 @@ class StudyCommentControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.study_comment_list").isNotEmpty())
-                .andDo(print());
+                .andExpect(jsonPath("$.study_comment_list").isNotEmpty());
+
     }
 
     @Test
@@ -217,7 +212,7 @@ class StudyCommentControllerTest extends MockTestConfig {
         String accessToken = jwtService.generateAccessToken(map, user);
 
         doThrow(new AuthException(ExceptionMessage.UNAUTHORIZED_AUTHORITY))
-                .when(studyMemberService)
+                .when(mockStudyMemberService)
                 .isValidateStudyMember(any(User.class), any(Long.class));
 
         // when
@@ -229,8 +224,7 @@ class StudyCommentControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(ExceptionMessage.UNAUTHORIZED_AUTHORITY.getText()))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value(ExceptionMessage.UNAUTHORIZED_AUTHORITY.getText()));
     }
 
     @Test
@@ -251,7 +245,7 @@ class StudyCommentControllerTest extends MockTestConfig {
 
                 // then
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("400 BAD_REQUEST \"Validation failure\""))
-                .andDo(print());
+                .andExpect(jsonPath("$.message").value("400 BAD_REQUEST \"Validation failure\""));
+
     }
 }
